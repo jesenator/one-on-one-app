@@ -32,6 +32,13 @@ export async function createMagicLink(
 
 export async function sendMagicLinkEmail(email: string, link: string) {
   const from = process.env.SENDGRID_FROM_EMAIL;
+  console.log("[auth] env check:", {
+    hasSendgridKey: !!process.env.SENDGRID_API_KEY,
+    keyPrefix: process.env.SENDGRID_API_KEY?.slice(0, 5),
+    from,
+    appUrl: process.env.APP_URL,
+    nodeEnv: process.env.NODE_ENV,
+  });
   if (!process.env.SENDGRID_API_KEY || !from) {
     console.log("[dev] magic link for", email, ":", link);
     return;
