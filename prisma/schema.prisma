@@ -1,0 +1,81 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String
+  createdAt DateTime @default(now())
+
+  attendances      RetreatAttendance[]
+  availability     Availability[]
+  requestsSent     MeetingRequest[]    @relation("from")
+  requestsReceived MeetingRequest[]    @relation("to")
+}
+
+model MagicLinkToken {
+  id        String    @id @default(cuid())
+  tokenHash String    @unique
+  email     String
+  name      String
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([email])
+}
+
+model RetreatAttendance {
+  id        String   @id @default(cuid())
+  userId    String
+  retreatId String
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, retreatId])
+  @@index([retreatId])
+}
+
+model Availability {
+  id        String   @id @default(cuid())
+  userId    String
+  retreatId String
+  slotStart DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, retreatId, slotStart])
+  @@index([retreatId, slotStart])
+}
+
+enum RequestStatus {
+  pending
+  accepted
+  declined
+  cancelled
+}
+
+model MeetingRequest {
+  id         String        @id @default(cuid())
+  retreatId  String
+  fromUserId String
+  toUserId   String
+  slotStart  DateTime
+  status     RequestStatus @default(pending)
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+
+  from User @relation("from", fields: [fromUserId], references: [id], onDelete: Cascade)
+  to   User @relation("to", fields: [toUserId], references: [id], onDelete: Cascade)
+
+  @@index([retreatId, slotStart])
+  @@index([fromUserId])
+  @@index([toUserId])
+}
