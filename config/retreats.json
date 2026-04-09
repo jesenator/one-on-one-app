@@ -12,7 +12,33 @@
         "dayEnd": "20:30",
         "granularityMinutes": 30
       }
+    },
+    {
+      "id": "midwest-ea-2026",
+      "name": "Midwest EA Retreat",
+      "timezone": "America/Chicago",
+      "active": true,
+      "slots": {
+        "start": "2026-04-10T20:00",
+        "end": "2026-04-12T19:00",
+        "dayStart": "08:00",
+        "dayEnd": "20:30",
+        "granularityMinutes": 30
+      }
+    },
+    {
+      "id": "northeast-ea-2026",
+      "name": "Northeast EA Retreat",
+      "timezone": "America/New_York",
+      "active": true,
+      "slots": {
+        "start": "2026-04-10T20:00",
+        "end": "2026-04-12T19:00",
+        "dayStart": "08:00",
+        "dayEnd": "20:30",
+        "granularityMinutes": 30
+      }
     }
   ],
-  "adminEmails": ["you@example.com"]
+  "adminEmails": ["jessewgilbert@gmail.com", "saulsmunn@gmail.com"]
 }
