@@ -46,24 +46,24 @@ export default function RequestsClient({
     `${formatSlotDay(new Date(iso))} ${formatSlotTime(new Date(iso))}`;
 
   return (
-    <div className="space-y-6">
-      <Section title="Incoming">
+    <div className="space-y-8">
+      <Section title="Incoming" count={incoming.length}>
         {incoming.length === 0 && <Empty>No pending requests.</Empty>}
         {incoming.map((r) => (
           <Row key={r.id}>
             <div>
               <div className="font-medium text-sm">{r.from.name}</div>
-              <div className="text-xs text-gray-500">{fmtTime(r.slotStart)}</div>
+              <div className="text-xs text-zinc-500">{fmtTime(r.slotStart)}</div>
             </div>
             <div className="flex gap-2">
               <button
-                className="px-3 py-1 bg-green-600 text-white rounded text-xs"
+                className="px-3 py-1.5 bg-emerald-600 text-white rounded-md text-xs font-medium hover:bg-emerald-700 transition"
                 onClick={() => act(r.id, "accept")}
               >
                 Accept
               </button>
               <button
-                className="px-3 py-1 bg-gray-200 rounded text-xs"
+                className="px-3 py-1.5 border border-zinc-200 text-zinc-600 rounded-md text-xs font-medium hover:bg-zinc-50 transition"
                 onClick={() => act(r.id, "decline")}
               >
                 Decline
@@ -73,16 +73,16 @@ export default function RequestsClient({
         ))}
       </Section>
 
-      <Section title="Outgoing">
+      <Section title="Outgoing" count={outgoing.length}>
         {outgoing.length === 0 && <Empty>No outgoing requests.</Empty>}
         {outgoing.map((r) => (
           <Row key={r.id}>
             <div>
               <div className="font-medium text-sm">{r.to.name}</div>
-              <div className="text-xs text-gray-500">{fmtTime(r.slotStart)}</div>
+              <div className="text-xs text-zinc-500">{fmtTime(r.slotStart)}</div>
             </div>
             <button
-              className="px-3 py-1 bg-gray-200 rounded text-xs"
+              className="px-3 py-1.5 border border-zinc-200 text-zinc-600 rounded-md text-xs font-medium hover:bg-zinc-50 transition"
               onClick={() => act(r.id, "cancel")}
             >
               Cancel
@@ -93,11 +93,12 @@ export default function RequestsClient({
 
       <Section
         title="Confirmed"
+        count={confirmed.length}
         action={
           confirmed.length > 0 && (
             <a
               href="/api/meetings/ics"
-              className="text-xs px-2 py-1 bg-black text-white rounded"
+              className="text-xs px-3 py-1.5 bg-zinc-900 text-white rounded-md font-medium hover:bg-zinc-800 transition"
             >
               Download all .ics
             </a>
@@ -111,19 +112,19 @@ export default function RequestsClient({
             <Row key={r.id}>
               <div>
                 <div className="font-medium text-sm">{other.name}</div>
-                <div className="text-xs text-gray-500">
+                <div className="text-xs text-zinc-500">
                   {fmtTime(r.slotStart)}
                 </div>
               </div>
               <div className="flex gap-2">
                 <a
                   href={`/api/meetings/${r.id}/ics`}
-                  className="px-3 py-1 bg-gray-200 rounded text-xs"
+                  className="px-3 py-1.5 border border-zinc-200 text-zinc-600 rounded-md text-xs font-medium hover:bg-zinc-50 transition"
                 >
                   .ics
                 </a>
                 <button
-                  className="px-3 py-1 bg-red-100 text-red-700 rounded text-xs"
+                  className="px-3 py-1.5 border border-red-200 text-red-600 rounded-md text-xs font-medium hover:bg-red-50 transition"
                   onClick={() => {
                     if (confirm("Cancel this 1:1?")) act(r.id, "cancel");
                   }}
@@ -141,17 +142,26 @@ export default function RequestsClient({
 
 function Section({
   title,
+  count,
   action,
   children,
 }: {
   title: string;
+  count?: number;
   action?: React.ReactNode;
   children: React.ReactNode;
 }) {
   return (
     <section>
-      <div className="flex items-center justify-between mb-2">
-        <h2 className="text-sm font-semibold">{title}</h2>
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-2">
+          <h2 className="text-sm font-semibold text-zinc-700">{title}</h2>
+          {count !== undefined && (
+            <span className="text-xs bg-zinc-200 text-zinc-600 rounded-full px-2 py-0.5">
+              {count}
+            </span>
+          )}
+        </div>
         {action}
       </div>
       <div className="space-y-2">{children}</div>
@@ -160,11 +170,11 @@ function Section({
 }
 function Row({ children }: { children: React.ReactNode }) {
   return (
-    <div className="bg-white border rounded-lg p-3 flex items-center justify-between">
+    <div className="overflow-hidden rounded-xl border border-zinc-200 bg-white p-4 flex items-center justify-between">
       {children}
     </div>
   );
 }
 function Empty({ children }: { children: React.ReactNode }) {
-  return <p className="text-xs text-gray-500">{children}</p>;
+  return <p className="text-sm text-zinc-500">{children}</p>;
 }

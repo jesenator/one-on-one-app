@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
+import AttendeeList from "./AttendeeList";
 
 export default async function AttendeesPage() {
   const s = await getSession();
@@ -14,11 +15,9 @@ export default async function AttendeesPage() {
     .filter((u) => u.id !== s.userId)
     .sort((a, b) => a.name.localeCompare(b.name));
   return (
-    <div className="p-4">
-      <h1 className="text-lg font-semibold mb-3">Attendees</h1>
+    <div>
+      <h1 className="text-xl font-semibold mb-4">Attendees</h1>
       <AttendeeList attendees={others} />
     </div>
   );
 }
-
-import AttendeeList from "./AttendeeList";

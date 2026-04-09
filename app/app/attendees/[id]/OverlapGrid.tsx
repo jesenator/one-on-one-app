@@ -52,10 +52,14 @@ export default function OverlapGrid({
   const days = Object.keys(groups).sort();
   return (
     <div className="space-y-6">
-      {error && <div className="text-sm text-red-600">{error}</div>}
+      {error && (
+        <div className="text-sm text-red-700 bg-red-50 border border-red-200 rounded-lg p-3">
+          {error}
+        </div>
+      )}
       {days.map((day) => (
         <div key={day}>
-          <h3 className="text-sm font-medium mb-2">
+          <h3 className="text-sm font-semibold text-zinc-700 mb-2">
             {formatSlotDay(new Date(day))}
           </h3>
           <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-1.5">
@@ -66,10 +70,10 @@ export default function OverlapGrid({
               const isPending = pendingSet.has(iso);
               const isMineOnly = mineSet.has(iso) && !theirsSet.has(iso);
               const isTheirsOnly = !mineSet.has(iso) && theirsSet.has(iso);
-              let cls = "bg-gray-100 text-gray-400 border-gray-200";
+              let cls = "bg-zinc-50 text-zinc-400 border-zinc-200";
               let label: React.ReactNode = formatSlotTime(new Date(iso));
               if (blocked) {
-                cls = "bg-blue-600 text-white border-blue-600";
+                cls = "bg-violet-100 text-violet-800 border-violet-300";
                 label = (
                   <>
                     {formatSlotTime(new Date(iso))}
@@ -77,7 +81,7 @@ export default function OverlapGrid({
                   </>
                 );
               } else if (isPending) {
-                cls = "bg-yellow-400 text-white border-yellow-400";
+                cls = "bg-amber-100 text-amber-800 border-amber-300";
                 label = (
                   <>
                     {formatSlotTime(new Date(iso))}
@@ -86,11 +90,11 @@ export default function OverlapGrid({
                 );
               } else if (both) {
                 cls =
-                  "bg-green-500 text-white border-green-500 hover:bg-green-600 cursor-pointer";
+                  "bg-emerald-600 text-white border-emerald-600 hover:bg-emerald-700 cursor-pointer";
               } else if (isMineOnly) {
-                cls = "bg-green-100 text-green-800 border-green-200";
+                cls = "bg-emerald-50 text-emerald-700 border-emerald-200";
               } else if (isTheirsOnly) {
-                cls = "bg-blue-50 text-blue-700 border-blue-100";
+                cls = "bg-zinc-100 text-zinc-500 border-zinc-200";
               }
               const clickable = both && !blocked && !isPending;
               return (
@@ -98,7 +102,7 @@ export default function OverlapGrid({
                   key={iso}
                   disabled={!clickable || busy === iso}
                   onClick={() => clickable && request(iso)}
-                  className={`py-2 rounded text-xs font-medium border transition ${cls}`}
+                  className={`py-2 rounded-md text-xs font-medium border transition ${cls}`}
                   title={
                     clickable
                       ? "Request 1:1"
@@ -114,25 +118,25 @@ export default function OverlapGrid({
           </div>
         </div>
       ))}
-      <div className="text-xs text-gray-500 flex flex-wrap gap-3 pt-2">
-        <span>
-          <span className="inline-block w-3 h-3 bg-green-500 rounded mr-1 align-middle" />
+      <div className="text-xs text-zinc-500 flex flex-wrap gap-4 pt-2">
+        <span className="flex items-center gap-1.5">
+          <span className="inline-block w-3 h-3 bg-emerald-600 rounded" />
           both free (tap to request)
         </span>
-        <span>
-          <span className="inline-block w-3 h-3 bg-green-100 border border-green-200 rounded mr-1 align-middle" />
+        <span className="flex items-center gap-1.5">
+          <span className="inline-block w-3 h-3 bg-emerald-50 border border-emerald-200 rounded" />
           only you
         </span>
-        <span>
-          <span className="inline-block w-3 h-3 bg-blue-50 border border-blue-100 rounded mr-1 align-middle" />
+        <span className="flex items-center gap-1.5">
+          <span className="inline-block w-3 h-3 bg-zinc-100 border border-zinc-200 rounded" />
           only them
         </span>
-        <span>
-          <span className="inline-block w-3 h-3 bg-yellow-400 rounded mr-1 align-middle" />
+        <span className="flex items-center gap-1.5">
+          <span className="inline-block w-3 h-3 bg-amber-100 border border-amber-300 rounded" />
           pending
         </span>
-        <span>
-          <span className="inline-block w-3 h-3 bg-blue-600 rounded mr-1 align-middle" />
+        <span className="flex items-center gap-1.5">
+          <span className="inline-block w-3 h-3 bg-violet-100 border border-violet-300 rounded" />
           booked
         </span>
       </div>

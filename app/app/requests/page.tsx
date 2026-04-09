@@ -28,8 +28,8 @@ export default async function RequestsPage() {
   const confirmed = all.filter((r) => r.status === "accepted");
 
   return (
-    <div className="p-4">
-      <h1 className="text-lg font-semibold mb-3">Requests</h1>
+    <div>
+      <h1 className="text-xl font-semibold mb-4">Requests</h1>
       <RequestsClient
         incoming={incoming.map(serialize)}
         outgoing={outgoing.map(serialize)}

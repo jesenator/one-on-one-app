@@ -3,7 +3,7 @@ import { useState, useTransition } from "react";
 import { formatSlotTime, formatSlotDay } from "@/lib/format";
 
 type Props = {
-  groups: Record<string, string[]>; // day -> ISO slots
+  groups: Record<string, string[]>;
   initialSelected: string[];
   bookedSlots: string[];
 };
@@ -41,7 +41,7 @@ export default function ScheduleGrid({
     <div className="space-y-6">
       {days.map((day) => (
         <div key={day}>
-          <h3 className="text-sm font-medium mb-2">
+          <h3 className="text-sm font-semibold text-zinc-700 mb-2">
             {formatSlotDay(new Date(day))}
           </h3>
           <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-1.5">
@@ -54,12 +54,12 @@ export default function ScheduleGrid({
                   onClick={() => toggle(iso)}
                   disabled={isBooked}
                   className={[
-                    "py-2 rounded text-xs font-medium border transition",
+                    "py-2 rounded-md text-xs font-medium border transition",
                     isBooked
-                      ? "bg-blue-600 text-white border-blue-600"
+                      ? "bg-violet-100 text-violet-800 border-violet-300"
                       : isSel
-                        ? "bg-green-500 text-white border-green-500"
-                        : "bg-white text-gray-700 border-gray-200 hover:bg-gray-100",
+                        ? "bg-emerald-600 text-white border-emerald-600"
+                        : "bg-white text-zinc-600 border-zinc-200 hover:bg-zinc-50 hover:border-zinc-300",
                   ].join(" ")}
                 >
                   {formatSlotTime(new Date(iso))}
@@ -70,13 +70,13 @@ export default function ScheduleGrid({
           </div>
         </div>
       ))}
-      <div className="text-xs text-gray-500 flex gap-3 pt-2">
-        <span>
-          <span className="inline-block w-3 h-3 bg-green-500 rounded mr-1 align-middle" />
+      <div className="text-xs text-zinc-500 flex gap-4 pt-2">
+        <span className="flex items-center gap-1.5">
+          <span className="inline-block w-3 h-3 bg-emerald-600 rounded" />
           available
         </span>
-        <span>
-          <span className="inline-block w-3 h-3 bg-blue-600 rounded mr-1 align-middle" />
+        <span className="flex items-center gap-1.5">
+          <span className="inline-block w-3 h-3 bg-violet-100 border border-violet-300 rounded" />
           booked
         </span>
       </div>

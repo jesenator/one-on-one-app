@@ -30,26 +30,26 @@ export default async function ProfilePage() {
   if (!s.userId) redirect("/login");
   const admin = isAdminEmail(s.email || "");
   return (
-    <div className="p-4 space-y-4">
-      <h1 className="text-lg font-semibold">Profile</h1>
-      <form action={updateName} className="bg-white border rounded-lg p-4 space-y-3">
+    <div className="space-y-5">
+      <h1 className="text-xl font-semibold">Profile</h1>
+      <form action={updateName} className="overflow-hidden rounded-xl border border-zinc-200 bg-white p-5 space-y-4">
         <div>
-          <label className="block text-sm font-medium mb-1">Name</label>
+          <label className="block text-sm font-medium text-zinc-700 mb-1">Name</label>
           <input
             name="name"
             defaultValue={s.name || ""}
-            className="w-full border rounded px-3 py-2"
+            className="w-full border border-zinc-200 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-zinc-900/10 focus:border-zinc-400"
           />
         </div>
         <div>
-          <label className="block text-sm font-medium mb-1">Email</label>
+          <label className="block text-sm font-medium text-zinc-700 mb-1">Email</label>
           <input
             disabled
             value={s.email || ""}
-            className="w-full border rounded px-3 py-2 bg-gray-50 text-gray-500"
+            className="w-full border border-zinc-200 rounded-md px-3 py-2 text-sm bg-zinc-50 text-zinc-500"
           />
         </div>
-        <button className="bg-black text-white rounded px-4 py-2 text-sm">
+        <button className="bg-zinc-900 text-white rounded-md px-4 py-2 text-sm font-medium hover:bg-zinc-800 transition">
           Save
         </button>
       </form>
@@ -57,20 +57,24 @@ export default async function ProfilePage() {
       {admin && (
         <a
           href="/admin"
-          className="block bg-amber-100 text-amber-900 rounded-lg p-3 text-sm font-medium"
+          className="block overflow-hidden rounded-xl border border-zinc-200 bg-white p-4 text-sm font-medium text-zinc-700 hover:bg-zinc-50 transition"
         >
-          Open admin panel →
+          Open admin panel &rarr;
         </a>
       )}
 
-      <form action={leaveRetreat}>
-        <button className="text-sm text-gray-600 underline">
-          Switch retreat
-        </button>
-      </form>
-      <form action="/api/auth/logout" method="post">
-        <button className="text-sm text-red-600 underline">Log out</button>
-      </form>
+      <div className="flex gap-4">
+        <form action={leaveRetreat}>
+          <button className="text-sm text-zinc-600 border border-zinc-200 rounded-md px-3 py-1.5 hover:bg-zinc-50 transition">
+            Switch retreat
+          </button>
+        </form>
+        <form action="/api/auth/logout" method="post">
+          <button className="text-sm text-red-600 border border-red-200 rounded-md px-3 py-1.5 hover:bg-red-50 transition">
+            Log out
+          </button>
+        </form>
+      </div>
     </div>
   );
 }

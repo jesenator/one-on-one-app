@@ -46,10 +46,10 @@ export default async function AttendeeProfile({
   ]);
 
   return (
-    <div className="p-4">
-      <h1 className="text-lg font-semibold">{user.name}</h1>
-      <p className="text-xs text-gray-500 mb-4">{user.email}</p>
-      <p className="text-xs text-gray-600 mb-3">
+    <div>
+      <h1 className="text-xl font-semibold">{user.name}</h1>
+      <p className="text-xs text-zinc-500 mb-4">{user.email}</p>
+      <p className="text-sm text-zinc-500 mb-4">
         Tap a slot where you&apos;re both available to request a 1:1.
       </p>
       <OverlapGrid

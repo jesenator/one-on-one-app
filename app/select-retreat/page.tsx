@@ -23,8 +23,8 @@ export default async function SelectRetreatPage() {
   if (!session.userId) redirect("/login");
   const retreats = getActiveRetreats();
   return (
-    <main className="min-h-screen flex items-center justify-center p-6 bg-gray-50">
-      <div className="w-full max-w-md bg-white rounded-2xl shadow p-6">
+    <main className="min-h-screen flex items-center justify-center px-6 py-16 bg-zinc-50 text-zinc-900">
+      <div className="w-full max-w-md bg-white rounded-xl border border-zinc-200 shadow-sm p-8">
         <h1 className="text-xl font-semibold mb-4">Pick your retreat</h1>
         <ul className="space-y-2">
           {retreats.map((r) => (
@@ -33,10 +33,10 @@ export default async function SelectRetreatPage() {
                 <input type="hidden" name="retreatId" value={r.id} />
                 <button
                   type="submit"
-                  className="w-full text-left border rounded-lg p-3 hover:bg-gray-50"
+                  className="w-full text-left border border-zinc-200 rounded-lg p-3 hover:bg-zinc-50 transition"
                 >
-                  <div className="font-medium">{r.name}</div>
-                  <div className="text-xs text-gray-500">{r.timezone}</div>
+                  <div className="font-medium text-sm">{r.name}</div>
+                  <div className="text-xs text-zinc-500">{r.timezone}</div>
                 </button>
               </form>
             </li>

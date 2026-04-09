@@ -26,44 +26,48 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="min-h-screen flex items-center justify-center p-6 bg-gray-50">
-      <div className="w-full max-w-sm bg-white rounded-2xl shadow p-6">
-        <h1 className="text-2xl font-semibold mb-1">EA Retreat 1:1s</h1>
-        <p className="text-sm text-gray-600 mb-6">
+    <main className="min-h-screen flex items-center justify-center px-6 py-16 bg-zinc-50 text-zinc-900">
+      <div className="w-full max-w-md bg-white rounded-xl border border-zinc-200 shadow-sm p-8">
+        <h1 className="text-xl font-semibold mb-1">EA Retreat 1:1s</h1>
+        <p className="text-sm text-zinc-500 mb-6">
           Sign in with a magic link.
         </p>
         {sent ? (
-          <p className="text-sm">
+          <div className="rounded-lg bg-emerald-50 border border-emerald-200 p-4 text-sm text-emerald-800">
             Check your email for a login link. You can close this tab.
-          </p>
+          </div>
         ) : (
-          <form onSubmit={submit} className="space-y-3">
+          <form onSubmit={submit} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium mb-1">Name</label>
+              <label className="block text-sm font-medium text-zinc-700 mb-1">Name</label>
               <input
                 required
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="w-full border rounded-lg px-3 py-2"
+                className="w-full border border-zinc-200 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-zinc-900/10 focus:border-zinc-400"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">Email</label>
+              <label className="block text-sm font-medium text-zinc-700 mb-1">Email</label>
               <input
                 type="email"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full border rounded-lg px-3 py-2"
+                className="w-full border border-zinc-200 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-zinc-900/10 focus:border-zinc-400"
               />
             </div>
-            {error && <p className="text-sm text-red-600">{error}</p>}
+            {error && (
+              <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-md p-3">
+                {error}
+              </div>
+            )}
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-black text-white rounded-lg py-2 font-medium disabled:opacity-50"
+              className="w-full bg-zinc-900 text-white rounded-md py-2 text-sm font-medium disabled:opacity-50 hover:bg-zinc-800 transition"
             >
-              {loading ? "Sending…" : "Send magic link"}
+              {loading ? "Sending..." : "Send magic link"}
             </button>
           </form>
         )}
