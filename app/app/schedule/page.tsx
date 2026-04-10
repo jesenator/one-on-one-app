@@ -4,6 +4,7 @@ import { getRetreat, generateSlots, groupSlotsByDay } from "@/lib/config";
 import {
   getMyAvailability,
   getAcceptedMeetingSlots,
+  ensureDefaultAvailability,
 } from "@/lib/availability";
 import ScheduleGrid from "./ScheduleGrid";
 
@@ -13,13 +14,15 @@ export default async function SchedulePage() {
   const retreat = getRetreat(s.retreatId)!;
   const slots = generateSlots(retreat);
   const groups = groupSlotsByDay(slots);
+  await ensureDefaultAvailability(s.userId, s.retreatId, slots);
   const mine = await getMyAvailability(s.userId, s.retreatId);
   const meetings = await getAcceptedMeetingSlots(s.userId, s.retreatId);
   return (
     <div>
       <h1 className="text-xl font-semibold mb-1">My availability</h1>
       <p className="text-sm text-zinc-500 mb-5">
-        Tap a slot to mark when you&apos;re free for 1:1s.
+        All slots are available by default. Tap to turn off times you&apos;re
+        not free.
       </p>
       <ScheduleGrid
         groups={Object.fromEntries(

@@ -8,6 +8,21 @@ export async function getMyAvailability(userId: string, retreatId: string) {
   return new Set(rows.map((r) => r.slotStart.toISOString()));
 }
 
+export async function ensureDefaultAvailability(
+  userId: string,
+  retreatId: string,
+  allSlots: Date[],
+) {
+  const count = await prisma.availability.count({
+    where: { userId, retreatId },
+  });
+  if (count > 0) return;
+  await prisma.availability.createMany({
+    data: allSlots.map((slotStart) => ({ userId, retreatId, slotStart })),
+    skipDuplicates: true,
+  });
+}
+
 export async function toggleAvailability(
   userId: string,
   retreatId: string,
