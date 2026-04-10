@@ -105,13 +105,29 @@ export default function OverlapGrid({
 
   return (
     <div className="space-y-5">
+      {/* Legend */}
+      <div className="text-xs text-stone-400 flex flex-wrap gap-4 pb-3 border-b border-stone-200/60">
+        <span className="flex items-center gap-2">
+          <span className="inline-block w-3 h-3 bg-accent-500 rounded" />
+          both free
+        </span>
+        <span className="flex items-center gap-2">
+          <span className="inline-block w-3 h-3 bg-amber-50 border border-amber-200 rounded" />
+          requested
+        </span>
+        <span className="flex items-center gap-2">
+          <span className="inline-block w-3 h-3 bg-stone-100 border border-stone-200 rounded" />
+          unavailable
+        </span>
+      </div>
+
       {error && (
         <div className="text-sm text-red-700 bg-red-50 border border-red-200 rounded-md p-3">
           {error}
         </div>
       )}
 
-      {totalAvailable === 0 && totalPending === 0 ? (
+      {totalAvailable === 0 && totalPending === 0 && (
         <div className="text-sm text-stone-500 bg-white rounded-md border border-stone-200 shadow-sm p-6 text-center">
           No overlapping availability right now.
           <br />
@@ -119,19 +135,7 @@ export default function OverlapGrid({
             Check back later or update your schedule.
           </span>
         </div>
-      ) : totalAvailable > 0 ? (
-        <div className="bg-accent-50 border border-accent-200 rounded-md px-4 py-3">
-          <p className="text-sm text-stone-600">
-            <span className="font-bold text-accent-600">{totalAvailable}</span>{" "}
-            {totalAvailable === 1 ? "time" : "times"} you&apos;re both free
-            {totalPending > 0 && (
-              <span className="text-stone-400">
-                {" "}&middot; {totalPending} requested
-              </span>
-            )}
-          </p>
-        </div>
-      ) : null}
+      )}
 
       {relevantDays.map(({ day, slots }) => (
         <div key={day}>
@@ -211,20 +215,6 @@ export default function OverlapGrid({
         </div>
       )}
 
-      <div className="text-xs text-stone-400 flex gap-4 pt-2">
-        <span className="flex items-center gap-2">
-          <span className="inline-block w-3 h-3 bg-accent-500 rounded" />
-          both free
-        </span>
-        <span className="flex items-center gap-2">
-          <span className="inline-block w-3 h-3 bg-amber-50 border border-amber-200 rounded" />
-          requested
-        </span>
-        <span className="flex items-center gap-2">
-          <span className="inline-block w-3 h-3 bg-stone-100 border border-stone-200 rounded" />
-          unavailable
-        </span>
-      </div>
     </div>
   );
 }

@@ -281,7 +281,7 @@ export default function CalendarView({
   return (
     <div>
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-4">
         <div>
           <h1 className="text-2xl font-bold text-stone-900">Your Schedule</h1>
           <p className="text-sm text-stone-400 mt-0.5">Manage your availability and meetings</p>
@@ -298,6 +298,26 @@ export default function CalendarView({
             Download all
           </a>
         )}
+      </div>
+
+      {/* Legend */}
+      <div className="text-xs text-stone-400 flex flex-wrap gap-4 mb-5 pb-4 border-b border-stone-200/60">
+        <span className="flex items-center gap-2">
+          <span className="inline-block w-3 h-3 bg-emerald-500 rounded" />
+          confirmed
+        </span>
+        <span className="flex items-center gap-2">
+          <span className="inline-block w-3 h-3 bg-amber-500 rounded" />
+          incoming request
+        </span>
+        <span className="flex items-center gap-2">
+          <span className="inline-block w-3 h-3 bg-stone-300 rounded" />
+          waiting
+        </span>
+        <span className="flex items-center gap-2">
+          <span className="inline-block w-3 h-3 ring-2 ring-amber-400 bg-amber-50 rounded" />
+          designated 1:1 time
+        </span>
       </div>
 
       {/* Mobile: Day tabs */}
@@ -341,25 +361,6 @@ export default function CalendarView({
         </div>
       </div>
 
-      {/* Legend */}
-      <div className="text-xs text-stone-400 flex flex-wrap gap-4 mt-6 pt-4 border-t border-stone-200/60">
-        <span className="flex items-center gap-2">
-          <span className="inline-block w-3 h-3 bg-emerald-500 rounded" />
-          confirmed
-        </span>
-        <span className="flex items-center gap-2">
-          <span className="inline-block w-3 h-3 bg-amber-500 rounded" />
-          incoming request
-        </span>
-        <span className="flex items-center gap-2">
-          <span className="inline-block w-3 h-3 bg-stone-300 rounded" />
-          waiting
-        </span>
-        <span className="flex items-center gap-2">
-          <span className="inline-block w-3 h-3 ring-2 ring-amber-400 bg-amber-50 rounded" />
-          designated 1:1 time
-        </span>
-      </div>
     </div>
   );
 }
