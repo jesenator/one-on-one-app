@@ -93,7 +93,6 @@ export default function OverlapGrid({
     },
     pending: {
       cls: "bg-amber-50 text-amber-700 border-amber-200",
-      sub: () => "pending",
     },
     booked: {
       cls: "bg-zinc-100 text-zinc-400 border-zinc-200",
@@ -123,10 +122,10 @@ export default function OverlapGrid({
       ) : totalAvailable > 0 ? (
         <p className="text-sm text-zinc-600">
           <span className="font-semibold text-emerald-700">{totalAvailable}</span>{" "}
-          {totalAvailable === 1 ? "time" : "times"} you&apos;re both free
+          {totalAvailable === 1 ? "time" : "times"}{" "}you&apos;re both free
           {totalPending > 0 && (
             <span className="text-zinc-400">
-              {" "}&middot; {totalPending} pending
+              {" "}&middot; {totalPending} requested
             </span>
           )}
         </p>
@@ -211,7 +210,7 @@ export default function OverlapGrid({
         </span>
         <span className="flex items-center gap-1.5">
           <span className="inline-block w-2.5 h-2.5 bg-amber-50 border border-amber-200 rounded" />
-          pending
+          requested
         </span>
         <span className="flex items-center gap-1.5">
           <span className="inline-block w-2.5 h-2.5 bg-zinc-100 border border-zinc-200 rounded" />

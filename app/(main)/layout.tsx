@@ -17,14 +17,23 @@ export default async function AppLayout({
   return (
     <div className="min-h-screen bg-zinc-50 text-zinc-900">
       <header className="border-b border-zinc-200 bg-white">
-        <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
-          <div>
-            <div className="text-xs uppercase tracking-wide text-zinc-500">
-              {retreat?.name}
+        <div className="mx-auto max-w-5xl px-6 py-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <span className="text-xs uppercase tracking-wide text-zinc-500">
+                {retreat?.name}
+              </span>
+              <span className="text-xs uppercase tracking-wide text-zinc-500 sm:hidden"> &middot; </span>
+              <span className="text-lg font-semibold sm:block hidden">1:1 Scheduler</span>
+              <span className="text-sm font-semibold sm:hidden">1:1 Scheduler</span>
             </div>
-            <div className="text-lg font-semibold">1:1 Scheduler</div>
+            <div className="hidden sm:block">
+              <AppNav admin={admin} />
+            </div>
           </div>
-          <AppNav admin={admin} />
+          <div className="mt-3 sm:hidden">
+            <AppNav admin={admin} />
+          </div>
         </div>
       </header>
       <main className="mx-auto max-w-5xl px-6 py-8">{children}</main>
