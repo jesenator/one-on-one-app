@@ -22,8 +22,8 @@
       "timezone": "America/Chicago",
       "active": true,
       "slots": {
-        "start": "2026-04-10T20:00",
-        "end": "2026-04-12T19:00",
+        "start": "2026-04-17T17:00",
+        "end": "2026-04-19T19:00",
         "dayStart": "08:00",
         "dayEnd": "22:00",
         "granularityMinutes": 30
@@ -36,7 +36,7 @@
       "timezone": "America/New_York",
       "active": true,
       "slots": {
-        "start": "2026-04-10T20:00",
+        "start": "2026-04-10T17:00",
         "end": "2026-04-12T19:00",
         "dayStart": "08:00",
         "dayEnd": "22:00",
