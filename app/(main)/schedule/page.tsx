@@ -3,12 +3,10 @@ import { getSession } from "@/lib/session";
 import { getRetreat, generateSlots, groupSlotsByDay } from "@/lib/config";
 import {
   getMyAvailability,
-  getAcceptedMeetingSlots,
   ensureDefaultAvailability,
 } from "@/lib/availability";
 import { prisma } from "@/lib/prisma";
-import ScheduleGrid from "./ScheduleGrid";
-import MeetingsList from "./MeetingsList";
+import CalendarView from "./CalendarView";
 
 export default async function SchedulePage() {
   const s = await getSession();
@@ -18,13 +16,13 @@ export default async function SchedulePage() {
   const groups = groupSlotsByDay(slots);
   await ensureDefaultAvailability(s.userId, s.retreatId, slots);
 
-  const [mine, meetings, allRequests] = await Promise.all([
+  const [mine, allRequests] = await Promise.all([
     getMyAvailability(s.userId, s.retreatId),
-    getAcceptedMeetingSlots(s.userId, s.retreatId),
     prisma.meetingRequest.findMany({
       where: {
         retreatId: s.retreatId,
         OR: [{ fromUserId: s.userId }, { toUserId: s.userId }],
+        status: { in: ["pending", "accepted"] },
       },
       include: {
         from: { select: { id: true, name: true, email: true } },
@@ -34,55 +32,49 @@ export default async function SchedulePage() {
     }),
   ]);
 
-  const incoming = allRequests.filter(
-    (r) => r.toUserId === s.userId && r.status === "pending",
-  );
-  const outgoing = allRequests.filter(
-    (r) => r.fromUserId === s.userId && r.status === "pending",
-  );
-  const confirmed = allRequests.filter((r) => r.status === "accepted");
+  const slotMeetings: Record<
+    string,
+    {
+      requestId: string;
+      otherPersonName: string;
+      otherPersonId: string;
+      type: "confirmed" | "incoming" | "outgoing";
+    }
+  > = {};
 
-  function serialize(r: typeof allRequests[number]) {
-    return {
-      id: r.id,
-      slotStart: r.slotStart.toISOString(),
-      status: r.status,
-      fromUserId: r.fromUserId,
-      toUserId: r.toUserId,
-      from: r.from,
-      to: r.to,
+  let hasConfirmed = false;
+
+  for (const r of allRequests) {
+    const iso = r.slotStart.toISOString();
+    const isIncoming = r.toUserId === s.userId && r.status === "pending";
+    const isOutgoing = r.fromUserId === s.userId && r.status === "pending";
+    const isConfirmed = r.status === "accepted";
+
+    if (!isIncoming && !isOutgoing && !isConfirmed) continue;
+    if (isConfirmed) hasConfirmed = true;
+
+    const other = r.fromUserId === s.userId ? r.to : r.from;
+    slotMeetings[iso] = {
+      requestId: r.id,
+      otherPersonName: other.name || "someone",
+      otherPersonId: other.id,
+      type: isConfirmed ? "confirmed" : isIncoming ? "incoming" : "outgoing",
     };
   }
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-[1fr_minmax(340px,420px)] gap-6 items-start">
-      <section>
-        <h1 className="text-xl font-semibold mb-3">Your 1:1s</h1>
-        <MeetingsList
-          incoming={incoming.map(serialize)}
-          outgoing={outgoing.map(serialize)}
-          confirmed={confirmed.map(serialize)}
-          meId={s.userId}
-        />
-      </section>
-
-      <section className="rounded-xl border border-zinc-200 bg-white p-5">
-        <h2 className="text-sm font-semibold mb-0.5">Your availability</h2>
-        <p className="text-xs text-zinc-500 mb-3">
-          Tap to turn off times you&apos;re not free.
-        </p>
-        <ScheduleGrid
-          groups={Object.fromEntries(
-            Object.entries(groups).map(([k, v]) => [
-              k,
-              v.map((d) => d.toISOString()),
-            ]),
-          )}
-          initialSelected={Array.from(mine)}
-          bookedSlots={Array.from(meetings)}
-          now={new Date().toISOString()}
-        />
-      </section>
-    </div>
+    <CalendarView
+      groups={Object.fromEntries(
+        Object.entries(groups).map(([k, v]) => [
+          k,
+          v.map((d) => d.toISOString()),
+        ]),
+      )}
+      availableSlots={Array.from(mine)}
+      slotMeetings={slotMeetings}
+      highlightedSlots={retreat.highlightedSlots ?? []}
+      now={new Date().toISOString()}
+      hasConfirmed={hasConfirmed}
+    />
   );
 }

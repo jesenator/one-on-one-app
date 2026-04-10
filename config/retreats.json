@@ -13,7 +13,14 @@
         "dayStart": "08:00",
         "dayEnd": "22:00",
         "granularityMinutes": 30
-      }
+      },
+      "highlightedSlots": [
+        "2026-04-11T11:00:00.000Z",
+        "2026-04-11T11:30:00.000Z",
+        "2026-04-12T13:30:00.000Z",
+        "2026-04-12T14:00:00.000Z",
+        "2026-04-12T15:30:00.000Z"
+      ]
     },
     {
       "id": "midwest-ea-2026",
@@ -27,7 +34,8 @@
         "dayStart": "08:00",
         "dayEnd": "22:00",
         "granularityMinutes": 30
-      }
+      },
+      "highlightedSlots": []
     },
     {
       "id": "northeast-ea-2026",
@@ -41,7 +49,8 @@
         "dayStart": "08:00",
         "dayEnd": "22:00",
         "granularityMinutes": 30
-      }
+      },
+      "highlightedSlots": []
     }
   ],
   "adminEmails": ["jessewgilbert@gmail.com", "saulsmunn@gmail.com", "noahdbirnbaum@gmail.com"]

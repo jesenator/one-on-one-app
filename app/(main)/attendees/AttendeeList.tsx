@@ -1,17 +1,42 @@
 "use client";
 import { useState } from "react";
 import Link from "next/link";
+import { formatSlotDay, formatSlotTime } from "@/lib/format";
 
 type Attendee = { id: string; name: string; email: string };
 
-export default function AttendeeList({ attendees }: { attendees: Attendee[] }) {
+export default function AttendeeList({
+  attendees,
+  slotFilter,
+}: {
+  attendees: Attendee[];
+  slotFilter?: string;
+}) {
   const [q, setQ] = useState("");
   const ql = q.toLowerCase();
-  const filtered = attendees.filter((a) =>
-    a.name.toLowerCase().includes(ql) || a.email.toLowerCase().includes(ql),
+  const filtered = attendees.filter(
+    (a) =>
+      a.name.toLowerCase().includes(ql) || a.email.toLowerCase().includes(ql),
   );
   return (
     <>
+      {slotFilter && (
+        <div className="flex items-center justify-between bg-amber-50 border border-amber-200 rounded-lg px-4 py-2.5 mb-4">
+          <span className="text-sm text-amber-800">
+            Available at{" "}
+            <span className="font-medium">
+              {formatSlotDay(new Date(slotFilter))}{" "}
+              {formatSlotTime(new Date(slotFilter))}
+            </span>
+          </span>
+          <Link
+            href="/attendees"
+            className="text-xs text-amber-700 underline hover:text-amber-900 transition"
+          >
+            Clear filter
+          </Link>
+        </div>
+      )}
       <input
         value={q}
         onChange={(e) => setQ(e.target.value)}

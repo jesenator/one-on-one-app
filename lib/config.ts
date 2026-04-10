@@ -12,6 +12,7 @@ export type RetreatConfig = {
     dayEnd: string; // "HH:mm"
     granularityMinutes: number;
   };
+  highlightedSlots?: string[];
 };
 
 type ConfigFile = {
