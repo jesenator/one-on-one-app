@@ -67,10 +67,15 @@ export default async function AttendeeProfile({
 
   return (
     <div>
+      <a
+        href="/attendees"
+        className="text-xs text-zinc-400 hover:text-zinc-600 transition mb-3 inline-block"
+      >
+        &larr; All attendees
+      </a>
       <h1 className="text-xl font-semibold">{user.name}</h1>
-      <p className="text-xs text-zinc-500 mb-3">{user.email}</p>
-      <p className="text-xs text-zinc-500 mb-4">
-        Tap a green slot to request a 1:1.
+      <p className="text-xs text-zinc-400 mb-5">
+        Tap a green slot to request a 1:1
       </p>
       <OverlapGrid
         toUserId={id}

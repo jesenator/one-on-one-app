@@ -15,6 +15,8 @@ type Props = {
   now: string;
 };
 
+type SlotState = "available" | "pending" | "booked" | "none";
+
 export default function OverlapGrid({
   toUserId,
   toUserName,
@@ -56,86 +58,105 @@ export default function OverlapGrid({
     router.refresh();
   }
 
+  function classify(iso: string): SlotState | null {
+    const isPast = new Date(iso).getTime() < nowMs;
+    if (isPast) return null;
+    if (myBookedSet.has(iso) || theirBookedSet.has(iso)) return "booked";
+    if (pendingSet.has(iso)) return "pending";
+    if (mineSet.has(iso) && theirsSet.has(iso)) return "available";
+    return "none";
+  }
+
   const days = Object.keys(groups).sort();
+
+  const relevantDays = days
+    .map((day) => {
+      const slots = groups[day]
+        .map((iso) => ({ iso, state: classify(iso) }))
+        .filter((s): s is { iso: string; state: SlotState } => s.state !== null);
+      return { day, slots };
+    })
+    .filter((d) => d.slots.some((s) => s.state !== "none"));
+
+  const totalAvailable = relevantDays.reduce(
+    (n, d) => n + d.slots.filter((s) => s.state === "available").length,
+    0,
+  );
+  const totalPending = relevantDays.reduce(
+    (n, d) => n + d.slots.filter((s) => s.state === "pending").length,
+    0,
+  );
+
+  const style: Record<SlotState, { cls: string; sub?: (iso: string) => string }> = {
+    available: {
+      cls: "bg-emerald-600 text-white border-emerald-600 hover:bg-emerald-700 cursor-pointer shadow-sm",
+    },
+    pending: {
+      cls: "bg-amber-50 text-amber-700 border-amber-200",
+      sub: () => "pending",
+    },
+    booked: {
+      cls: "bg-zinc-100 text-zinc-400 border-zinc-200",
+      sub: () => "unavailable",
+    },
+    none: {
+      cls: "bg-zinc-100 text-zinc-400 border-zinc-200",
+    },
+  };
+
   return (
-    <div className="space-y-4">
+    <div className="space-y-5">
       {error && (
         <div className="text-sm text-red-700 bg-red-50 border border-red-200 rounded-lg p-3">
           {error}
         </div>
       )}
-      {days.map((day) => (
+
+      {totalAvailable === 0 && totalPending === 0 ? (
+        <div className="text-sm text-zinc-500 bg-zinc-50 rounded-lg p-4 text-center">
+          No overlapping availability right now.
+          <br />
+          <span className="text-xs">
+            Check back later or update your schedule.
+          </span>
+        </div>
+      ) : totalAvailable > 0 ? (
+        <p className="text-sm text-zinc-600">
+          <span className="font-semibold text-emerald-700">{totalAvailable}</span>{" "}
+          {totalAvailable === 1 ? "time" : "times"} you&apos;re both free
+          {totalPending > 0 && (
+            <span className="text-zinc-400">
+              {" "}&middot; {totalPending} pending
+            </span>
+          )}
+        </p>
+      ) : null}
+
+      {relevantDays.map(({ day, slots }) => (
         <div key={day}>
-          <h3 className="text-xs font-semibold text-zinc-700 mb-1.5">
+          <h3 className="text-xs font-semibold text-zinc-500 uppercase tracking-wide mb-2">
             {formatSlotDay(new Date(day))}
           </h3>
-          <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-1">
-            {groups[day].map((iso) => {
-              const both = mineSet.has(iso) && theirsSet.has(iso);
-              const myBlocked = myBookedSet.has(iso);
-              const theirBlocked = theirBookedSet.has(iso);
-              const blocked = myBlocked || theirBlocked;
-              const isPending = pendingSet.has(iso);
-              const isMineOnly = mineSet.has(iso) && !theirsSet.has(iso);
-              const isTheirsOnly = !mineSet.has(iso) && theirsSet.has(iso);
-              const isPast = new Date(iso).getTime() < nowMs;
-              let cls = "bg-zinc-50 text-zinc-400 border-zinc-200";
-              let label: React.ReactNode = formatSlotTime(new Date(iso));
-              if (myBlocked) {
-                const who = myBookedMeetings[iso];
-                cls = "bg-violet-100 text-violet-800 border-violet-300";
-                label = (
-                  <>
-                    {formatSlotTime(new Date(iso))}
-                    <div className="text-[9px] truncate">{who}</div>
-                  </>
-                );
-              } else if (theirBlocked) {
-                cls = "bg-violet-50 text-violet-600 border-violet-200";
-                label = (
-                  <>
-                    {formatSlotTime(new Date(iso))}
-                    <div className="text-[9px]">busy</div>
-                  </>
-                );
-              } else if (isPending) {
-                cls = "bg-amber-100 text-amber-800 border-amber-300";
-                label = (
-                  <>
-                    {formatSlotTime(new Date(iso))}
-                    <div className="text-[9px]">pending</div>
-                  </>
-                );
-              } else if (both && !isPast) {
-                cls =
-                  "bg-emerald-600 text-white border-emerald-600 hover:bg-emerald-700 cursor-pointer";
-              } else if (isMineOnly) {
-                cls = "bg-emerald-50 text-emerald-700 border-emerald-200";
-              } else if (isTheirsOnly) {
-                cls = "bg-zinc-100 text-zinc-500 border-zinc-200";
-              }
-              const clickable = both && !blocked && !isPending && !isPast;
+          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-1.5">
+            {slots.map(({ iso, state }) => {
+              const { cls, sub } = style[state];
+              const clickable = state === "available";
               return (
                 <button
                   key={iso}
                   disabled={!clickable || busy === iso}
                   onClick={() => clickable && setConfirm(iso)}
                   className={[
-                    "py-1.5 rounded text-[11px] font-medium border transition",
+                    "py-2 px-1 rounded-lg text-xs font-medium border transition",
                     cls,
-                    isPast && !blocked ? "opacity-40" : "",
                   ].join(" ")}
-                  title={
-                    isPast
-                      ? "past"
-                      : clickable
-                        ? "Request 1:1"
-                        : both
-                          ? "unavailable"
-                          : "not mutually available"
-                  }
                 >
-                  {label}
+                  {formatSlotTime(new Date(iso))}
+                  {sub && (
+                    <div className="text-[10px] font-normal truncate opacity-75">
+                      {sub(iso)}
+                    </div>
+                  )}
                 </button>
               );
             })}
@@ -154,9 +175,15 @@ export default function OverlapGrid({
           >
             <h3 className="text-base font-semibold mb-1">Request 1:1</h3>
             <p className="text-sm text-zinc-600 mb-4">
-              Request a meeting with {toUserName} on{" "}
-              {formatSlotDay(new Date(confirm))} at{" "}
-              {formatSlotTime(new Date(confirm))}?
+              Meet with {toUserName} on{" "}
+              <span className="font-medium">
+                {formatSlotDay(new Date(confirm))}
+              </span>{" "}
+              at{" "}
+              <span className="font-medium">
+                {formatSlotTime(new Date(confirm))}
+              </span>
+              ?
             </p>
             <div className="flex gap-2 justify-end">
               <button
@@ -177,26 +204,18 @@ export default function OverlapGrid({
         </div>
       )}
 
-      <div className="text-xs text-zinc-500 flex flex-wrap gap-x-4 gap-y-1 pt-1">
+      <div className="text-[11px] text-zinc-400 flex gap-4 pt-1">
         <span className="flex items-center gap-1.5">
-          <span className="inline-block w-3 h-3 bg-emerald-600 rounded" />
+          <span className="inline-block w-2.5 h-2.5 bg-emerald-600 rounded" />
           both free
         </span>
         <span className="flex items-center gap-1.5">
-          <span className="inline-block w-3 h-3 bg-emerald-50 border border-emerald-200 rounded" />
-          only you
-        </span>
-        <span className="flex items-center gap-1.5">
-          <span className="inline-block w-3 h-3 bg-zinc-100 border border-zinc-200 rounded" />
-          only them
-        </span>
-        <span className="flex items-center gap-1.5">
-          <span className="inline-block w-3 h-3 bg-amber-100 border border-amber-300 rounded" />
+          <span className="inline-block w-2.5 h-2.5 bg-amber-50 border border-amber-200 rounded" />
           pending
         </span>
         <span className="flex items-center gap-1.5">
-          <span className="inline-block w-3 h-3 bg-violet-100 border border-violet-300 rounded" />
-          booked
+          <span className="inline-block w-2.5 h-2.5 bg-zinc-100 border border-zinc-200 rounded" />
+          unavailable
         </span>
       </div>
     </div>
