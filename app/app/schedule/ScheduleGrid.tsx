@@ -59,18 +59,15 @@ export default function ScheduleGrid({
                   disabled={isBooked}
                   className={[
                     "py-1.5 rounded text-[11px] font-medium border transition",
-                    isPast && !isBooked
-                      ? "opacity-40"
-                      : "",
+                    isPast || isBooked ? "opacity-40" : "",
                     isBooked
-                      ? "bg-violet-100 text-violet-800 border-violet-300"
+                      ? "bg-zinc-100 text-zinc-400 border-zinc-200 cursor-default"
                       : isSel
                         ? "bg-emerald-600 text-white border-emerald-600"
                         : "bg-white text-zinc-600 border-zinc-200 hover:bg-zinc-50 hover:border-zinc-300",
                   ].join(" ")}
                 >
                   {formatSlotTime(new Date(iso))}
-                  {isBooked && <div className="text-[9px]">booked</div>}
                 </button>
               );
             })}
@@ -83,8 +80,8 @@ export default function ScheduleGrid({
           available
         </span>
         <span className="flex items-center gap-1.5">
-          <span className="inline-block w-3 h-3 bg-violet-100 border border-violet-300 rounded" />
-          booked
+          <span className="inline-block w-3 h-3 bg-zinc-100 border border-zinc-200 rounded opacity-40" />
+          unavailable
         </span>
       </div>
     </div>
