@@ -29,7 +29,10 @@ export default async function RequestsPage() {
 
   return (
     <div>
-      <h1 className="text-xl font-semibold mb-4">Requests</h1>
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold text-stone-900">Requests</h1>
+        <p className="text-sm text-stone-400 mt-0.5">Manage your 1:1 meeting requests</p>
+      </div>
       <RequestsClient
         incoming={incoming.map(serialize)}
         outgoing={outgoing.map(serialize)}

@@ -89,54 +89,56 @@ export default function OverlapGrid({
 
   const style: Record<SlotState, { cls: string; sub?: (iso: string) => string }> = {
     available: {
-      cls: "bg-emerald-600 text-white border-emerald-600 hover:bg-emerald-700 cursor-pointer shadow-sm",
+      cls: "bg-accent-500 text-white border-accent-500 hover:bg-accent-600 cursor-pointer shadow-sm",
     },
     pending: {
       cls: "bg-amber-50 text-amber-700 border-amber-200",
     },
     booked: {
-      cls: "bg-zinc-100 text-zinc-400 border-zinc-200",
+      cls: "bg-stone-50 text-stone-400 border-stone-200",
       sub: () => "unavailable",
     },
     none: {
-      cls: "bg-zinc-100 text-zinc-400 border-zinc-200",
+      cls: "bg-stone-50 text-stone-400 border-stone-200",
     },
   };
 
   return (
     <div className="space-y-5">
       {error && (
-        <div className="text-sm text-red-700 bg-red-50 border border-red-200 rounded-lg p-3">
+        <div className="text-sm text-red-700 bg-red-50 border border-red-200 rounded-md p-3">
           {error}
         </div>
       )}
 
       {totalAvailable === 0 && totalPending === 0 ? (
-        <div className="text-sm text-zinc-500 bg-zinc-50 rounded-lg p-4 text-center">
+        <div className="text-sm text-stone-500 bg-white rounded-md border border-stone-200 shadow-sm p-6 text-center">
           No overlapping availability right now.
           <br />
-          <span className="text-xs">
+          <span className="text-xs text-stone-400">
             Check back later or update your schedule.
           </span>
         </div>
       ) : totalAvailable > 0 ? (
-        <p className="text-sm text-zinc-600">
-          <span className="font-semibold text-emerald-700">{totalAvailable}</span>{" "}
-          {totalAvailable === 1 ? "time" : "times"}{" "}you&apos;re both free
-          {totalPending > 0 && (
-            <span className="text-zinc-400">
-              {" "}&middot; {totalPending} requested
-            </span>
-          )}
-        </p>
+        <div className="bg-accent-50 border border-accent-200 rounded-md px-4 py-3">
+          <p className="text-sm text-stone-600">
+            <span className="font-bold text-accent-600">{totalAvailable}</span>{" "}
+            {totalAvailable === 1 ? "time" : "times"} you&apos;re both free
+            {totalPending > 0 && (
+              <span className="text-stone-400">
+                {" "}&middot; {totalPending} requested
+              </span>
+            )}
+          </p>
+        </div>
       ) : null}
 
       {relevantDays.map(({ day, slots }) => (
         <div key={day}>
-          <h3 className="text-xs font-semibold text-zinc-500 uppercase tracking-wide mb-2">
+          <h3 className="text-xs font-bold text-stone-500 uppercase tracking-wider mb-2.5">
             {formatSlotDay(new Date(day))}
           </h3>
-          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-1.5">
+          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2">
             {slots.map(({ iso, state }) => {
               const { cls, sub } = style[state];
               const clickable = state === "available";
@@ -146,7 +148,7 @@ export default function OverlapGrid({
                   disabled={!clickable || busy === iso}
                   onClick={() => clickable && setConfirm(iso)}
                   className={[
-                    "py-2 px-1 rounded-lg text-xs font-medium border transition",
+                    "py-2.5 px-1.5 rounded-md text-xs font-semibold border transition",
                     cls,
                   ].join(" ")}
                 >
@@ -165,36 +167,42 @@ export default function OverlapGrid({
 
       {confirm && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 animate-backdrop"
           onClick={() => setConfirm(null)}
         >
           <div
-            className="bg-white rounded-xl border border-zinc-200 shadow-lg p-6 w-full max-w-sm mx-4"
+            className="bg-white rounded-lg border border-stone-200 shadow-lg p-6 w-full max-w-sm mx-4 animate-modal"
             onClick={(e) => e.stopPropagation()}
           >
-            <h3 className="text-base font-semibold mb-1">Request 1:1</h3>
-            <p className="text-sm text-zinc-600 mb-4">
-              Meet with {toUserName} on{" "}
-              <span className="font-medium">
+            <div className="w-10 h-10 rounded-md bg-accent-500 flex items-center justify-center mb-4">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="white" className="w-5 h-5">
+                <path d="M5.25 12a.75.75 0 0 1 .75-.75h.01a.75.75 0 0 1 .75.75v.01a.75.75 0 0 1-.75.75H6a.75.75 0 0 1-.75-.75V12ZM6 13.25a.75.75 0 0 0-.75.75v.01c0 .414.336.75.75.75h.01a.75.75 0 0 0 .75-.75V14a.75.75 0 0 0-.75-.75H6ZM7.25 12a.75.75 0 0 1 .75-.75h.01a.75.75 0 0 1 .75.75v.01a.75.75 0 0 1-.75.75H8a.75.75 0 0 1-.75-.75V12ZM8 13.25a.75.75 0 0 0-.75.75v.01c0 .414.336.75.75.75h.01a.75.75 0 0 0 .75-.75V14a.75.75 0 0 0-.75-.75H8ZM9.25 10a.75.75 0 0 1 .75-.75h.01a.75.75 0 0 1 .75.75v.01a.75.75 0 0 1-.75.75H10a.75.75 0 0 1-.75-.75V10Z" />
+                <path fillRule="evenodd" d="M5.75 2a.75.75 0 0 1 .75.75V4h7V2.75a.75.75 0 0 1 1.5 0V4h.25A2.75 2.75 0 0 1 18 6.75v8.5A2.75 2.75 0 0 1 15.25 18H4.75A2.75 2.75 0 0 1 2 15.25v-8.5A2.75 2.75 0 0 1 4.75 4H5V2.75A.75.75 0 0 1 5.75 2Zm-1 5.5c-.69 0-1.25.56-1.25 1.25v6.5c0 .69.56 1.25 1.25 1.25h10.5c.69 0 1.25-.56 1.25-1.25v-6.5c0-.69-.56-1.25-1.25-1.25H4.75Z" clipRule="evenodd" />
+              </svg>
+            </div>
+            <h3 className="text-lg font-bold text-stone-900 mb-1">Request 1:1</h3>
+            <p className="text-sm text-stone-500 mb-5">
+              Meet with <span className="font-semibold text-stone-700">{toUserName}</span> on{" "}
+              <span className="font-semibold text-stone-700">
                 {formatSlotDay(new Date(confirm))}
               </span>{" "}
               at{" "}
-              <span className="font-medium">
+              <span className="font-semibold text-stone-700">
                 {formatSlotTime(new Date(confirm))}
               </span>
               ?
             </p>
-            <div className="flex gap-2 justify-end">
+            <div className="flex gap-2.5 justify-end">
               <button
                 onClick={() => setConfirm(null)}
-                className="px-4 py-2 text-sm font-medium border border-zinc-200 rounded-md hover:bg-zinc-50 transition"
+                className="px-4 py-2 text-sm font-medium border border-stone-200 rounded-md hover:bg-stone-50 transition text-stone-600"
               >
                 Cancel
               </button>
               <button
                 onClick={() => request(confirm)}
                 disabled={busy === confirm}
-                className="px-4 py-2 text-sm font-medium bg-emerald-600 text-white rounded-md hover:bg-emerald-700 transition disabled:opacity-50"
+                className="px-4 py-2 text-sm font-semibold bg-accent-500 text-white rounded-md hover:bg-accent-600 transition disabled:opacity-50"
               >
                 {busy === confirm ? "Sending..." : "Confirm"}
               </button>
@@ -203,17 +211,17 @@ export default function OverlapGrid({
         </div>
       )}
 
-      <div className="text-[11px] text-zinc-400 flex gap-4 pt-1">
-        <span className="flex items-center gap-1.5">
-          <span className="inline-block w-2.5 h-2.5 bg-emerald-600 rounded" />
+      <div className="text-xs text-stone-400 flex gap-4 pt-2">
+        <span className="flex items-center gap-2">
+          <span className="inline-block w-3 h-3 bg-accent-500 rounded" />
           both free
         </span>
-        <span className="flex items-center gap-1.5">
-          <span className="inline-block w-2.5 h-2.5 bg-amber-50 border border-amber-200 rounded" />
+        <span className="flex items-center gap-2">
+          <span className="inline-block w-3 h-3 bg-amber-50 border border-amber-200 rounded" />
           requested
         </span>
-        <span className="flex items-center gap-1.5">
-          <span className="inline-block w-2.5 h-2.5 bg-zinc-100 border border-zinc-200 rounded" />
+        <span className="flex items-center gap-2">
+          <span className="inline-block w-3 h-3 bg-stone-100 border border-stone-200 rounded" />
           unavailable
         </span>
       </div>
