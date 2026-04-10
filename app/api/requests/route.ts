@@ -25,61 +25,66 @@ export async function POST(req: Request) {
     );
   }
 
-  // Validate both users have availability and aren't already booked
-  const [fromAvail, toAvail, conflict] = await Promise.all([
-    prisma.availability.findUnique({
-      where: {
-        userId_retreatId_slotStart: {
-          userId: s.userId,
-          retreatId: s.retreatId,
-          slotStart,
-        },
-      },
-    }),
-    prisma.availability.findUnique({
-      where: {
-        userId_retreatId_slotStart: {
-          userId: parsed.data.toUserId,
-          retreatId: s.retreatId,
-          slotStart,
-        },
-      },
-    }),
-    prisma.meetingRequest.findFirst({
-      where: {
-        retreatId: s.retreatId,
-        slotStart,
-        status: "accepted",
-        OR: [
-          { fromUserId: s.userId },
-          { toUserId: s.userId },
-          { fromUserId: parsed.data.toUserId },
-          { toUserId: parsed.data.toUserId },
-        ],
-      },
-    }),
-  ]);
-  if (!fromAvail || !toAvail)
-    return NextResponse.json(
-      { error: "Both users must mark this slot available." },
-      { status: 400 },
-    );
-  if (conflict)
-    return NextResponse.json(
-      { error: "Slot already booked." },
-      { status: 400 },
-    );
+  // Capture narrowed values for use inside transaction closure
+  const userId = s.userId;
+  const retreatId = s.retreatId;
 
-  const [created, toUser, fromUser] = await Promise.all([
-    prisma.meetingRequest.create({
-      data: {
-        retreatId: s.retreatId,
-        fromUserId: s.userId,
-        toUserId: parsed.data.toUserId,
-        slotStart,
-        status: "pending",
-      },
-    }),
+  // Validate and create inside a transaction to prevent double-booking
+  let created;
+  try {
+    created = await prisma.$transaction(async (tx) => {
+      const [fromAvail, toAvail, conflict] = await Promise.all([
+        tx.availability.findUnique({
+          where: {
+            userId_retreatId_slotStart: {
+              userId,
+              retreatId,
+              slotStart,
+            },
+          },
+        }),
+        tx.availability.findUnique({
+          where: {
+            userId_retreatId_slotStart: {
+              userId: parsed.data.toUserId,
+              retreatId,
+              slotStart,
+            },
+          },
+        }),
+        tx.meetingRequest.findFirst({
+          where: {
+            retreatId,
+            slotStart,
+            status: "accepted",
+            OR: [
+              { fromUserId: userId },
+              { toUserId: userId },
+              { fromUserId: parsed.data.toUserId },
+              { toUserId: parsed.data.toUserId },
+            ],
+          },
+        }),
+      ]);
+      if (!fromAvail || !toAvail) throw new Error("Both users must mark this slot available.");
+      if (conflict) throw new Error("Slot already booked.");
+
+      return tx.meetingRequest.create({
+        data: {
+          retreatId,
+          fromUserId: userId,
+          toUserId: parsed.data.toUserId,
+          slotStart,
+          status: "pending",
+        },
+      });
+    });
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : "Failed to create request.";
+    return NextResponse.json({ error: msg }, { status: 400 });
+  }
+
+  const [toUser, fromUser] = await Promise.all([
     prisma.user.findUnique({ where: { id: parsed.data.toUserId }, select: { email: true } }),
     prisma.user.findUnique({ where: { id: s.userId }, select: { name: true } }),
   ]);

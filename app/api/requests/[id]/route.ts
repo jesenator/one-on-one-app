@@ -28,32 +28,38 @@ export async function POST(
     if (mr.status !== "pending")
       return NextResponse.json({ error: "not pending" }, { status: 400 });
     if (parsed.data.action === "accept") {
-      // ensure no conflict
-      const conflict = await prisma.meetingRequest.findFirst({
-        where: {
-          retreatId: mr.retreatId,
-          slotStart: mr.slotStart,
-          status: "accepted",
-          OR: [
-            { fromUserId: mr.fromUserId },
-            { toUserId: mr.fromUserId },
-            { fromUserId: mr.toUserId },
-            { toUserId: mr.toUserId },
-          ],
-        },
+      // Check conflict and update atomically to prevent double-booking
+      try {
+        await prisma.$transaction(async (tx) => {
+          const conflict = await tx.meetingRequest.findFirst({
+            where: {
+              retreatId: mr.retreatId,
+              slotStart: mr.slotStart,
+              status: "accepted",
+              OR: [
+                { fromUserId: mr.fromUserId },
+                { toUserId: mr.fromUserId },
+                { fromUserId: mr.toUserId },
+                { toUserId: mr.toUserId },
+              ],
+            },
+          });
+          if (conflict) throw new Error("Slot already booked.");
+          await tx.meetingRequest.update({
+            where: { id },
+            data: { status: "accepted" },
+          });
+        });
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : "Failed to accept.";
+        return NextResponse.json({ error: msg }, { status: 400 });
+      }
+    } else {
+      await prisma.meetingRequest.update({
+        where: { id },
+        data: { status: "declined" },
       });
-      if (conflict)
-        return NextResponse.json(
-          { error: "Slot already booked." },
-          { status: 400 },
-        );
     }
-    await prisma.meetingRequest.update({
-      where: { id },
-      data: {
-        status: parsed.data.action === "accept" ? "accepted" : "declined",
-      },
-    });
     const [fromUser, toUser] = await Promise.all([
       prisma.user.findUnique({ where: { id: mr.fromUserId }, select: { email: true, name: true } }),
       prisma.user.findUnique({ where: { id: mr.toUserId }, select: { name: true } }),
