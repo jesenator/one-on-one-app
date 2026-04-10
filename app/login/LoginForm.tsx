@@ -38,7 +38,7 @@ export default function LoginForm() {
           </svg>
         </div>
         <h1 className="text-2xl font-bold text-stone-900">EA Retreat 1:1s</h1>
-        <p className="text-sm text-stone-500 mt-1">Sign in with a magic link</p>
+        <p className="text-sm text-stone-500 mt-1">We&apos;ll email you a link to sign in</p>
       </div>
       <div className="bg-white rounded-lg border border-stone-200 shadow-sm p-8">
         {sent ? (
@@ -53,7 +53,7 @@ export default function LoginForm() {
         ) : (
           <form onSubmit={submit} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-stone-700 mb-1.5">Name</label>
+              <label className="block text-sm font-medium text-stone-700 mb-1.5">Full name</label>
               <input
                 required
                 value={name}
@@ -84,7 +84,7 @@ export default function LoginForm() {
               disabled={loading}
               className="w-full bg-accent-500 text-white rounded-md py-2.5 text-sm font-semibold disabled:opacity-50 hover:bg-accent-600 transition"
             >
-              {loading ? "Sending..." : "Send magic link"}
+              {loading ? "Sending email..." : "Sign in"}
             </button>
           </form>
         )}
