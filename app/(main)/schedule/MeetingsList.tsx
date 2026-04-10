@@ -51,7 +51,7 @@ export default function MeetingsList({
     return (
       <div className="rounded-xl border border-zinc-200 bg-white p-6 text-center">
         <p className="text-sm text-zinc-500">
-          No meetings yet. Browse <a href="/app/attendees" className="underline text-zinc-700">attendees</a> to request 1:1s.
+          No meetings yet. Browse <a href="/attendees" className="underline text-zinc-700">attendees</a> to request 1:1s.
         </p>
       </div>
     );

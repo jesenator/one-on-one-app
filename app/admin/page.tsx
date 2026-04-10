@@ -43,7 +43,7 @@ export default async function AdminPage({
 }) {
   const s = await getSession();
   if (!s.userId) redirect("/login");
-  if (!isAdminEmail(s.email || "")) redirect("/app/schedule");
+  if (!isAdminEmail(s.email || "")) redirect("/schedule");
 
   const retreats = getActiveRetreats();
   const { retreat: activeTab } = await searchParams;
@@ -70,7 +70,7 @@ export default async function AdminPage({
         <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
           <div className="text-lg font-semibold">Admin</div>
           <Link
-            href="/app/schedule"
+            href="/schedule"
             className="text-sm text-zinc-600 hover:text-zinc-900 transition"
           >
             Back to app

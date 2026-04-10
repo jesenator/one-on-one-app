@@ -28,7 +28,7 @@ export async function GET(req: Request) {
     });
     session.retreatId = retreatId;
     await session.save();
-    return NextResponse.redirect(new URL("/app/schedule", url));
+    return NextResponse.redirect(new URL("/schedule", url));
   }
 
   await session.save();

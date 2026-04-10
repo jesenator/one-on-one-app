@@ -26,7 +26,7 @@ export default function AttendeeList({ attendees }: { attendees: Attendee[] }) {
           {filtered.map((a) => (
             <Link
               key={a.id}
-              href={`/app/attendees/${a.id}`}
+              href={`/attendees/${a.id}`}
               className="block p-4 hover:bg-zinc-50 transition"
             >
               <div className="font-medium text-sm">{a.name}</div>

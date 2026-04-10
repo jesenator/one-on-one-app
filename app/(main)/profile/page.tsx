@@ -13,7 +13,7 @@ async function updateName(formData: FormData) {
     session.name = name;
     await session.save();
   }
-  redirect("/app/profile");
+  redirect("/profile");
 }
 
 

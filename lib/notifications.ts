@@ -27,7 +27,7 @@ function fmtSlot(d: Date) {
 
 export function notifyNewRequest(toEmail: string, fromName: string, slotStart: Date) {
   const when = fmtSlot(slotStart);
-  const link = `${APP_URL}/app/schedule`;
+  const link = `${APP_URL}/schedule`;
   const subject = `${fromName} wants to meet 1:1`;
   const text = `${fromName} requested a 1:1 with you on ${when}.\n\nAccept or decline: ${link}`;
   const html = `<p><strong>${fromName}</strong> requested a 1:1 with you on <strong>${when}</strong>.</p><p><a href="${link}">Open your schedule to respond</a></p>`;
@@ -36,7 +36,7 @@ export function notifyNewRequest(toEmail: string, fromName: string, slotStart: D
 
 export function notifyRequestAccepted(toEmail: string, accepterName: string, slotStart: Date) {
   const when = fmtSlot(slotStart);
-  const link = `${APP_URL}/app/schedule`;
+  const link = `${APP_URL}/schedule`;
   const subject = `${accepterName} accepted your 1:1`;
   const text = `${accepterName} accepted your 1:1 on ${when}.\n\nView your schedule: ${link}`;
   const html = `<p><strong>${accepterName}</strong> accepted your 1:1 on <strong>${when}</strong>.</p><p><a href="${link}">View your schedule</a></p>`;
@@ -45,7 +45,7 @@ export function notifyRequestAccepted(toEmail: string, accepterName: string, slo
 
 export function notifyRequestDeclined(toEmail: string, declinerName: string, slotStart: Date) {
   const when = fmtSlot(slotStart);
-  const link = `${APP_URL}/app/attendees`;
+  const link = `${APP_URL}/attendees`;
   const subject = `1:1 declined by ${declinerName}`;
   const text = `${declinerName} declined your 1:1 request for ${when}.\n\nFind another time: ${link}`;
   const html = `<p><strong>${declinerName}</strong> declined your 1:1 request for <strong>${when}</strong>.</p><p><a href="${link}">Browse attendees to find another time</a></p>`;
@@ -54,7 +54,7 @@ export function notifyRequestDeclined(toEmail: string, declinerName: string, slo
 
 export function notifyMeetingCancelled(toEmail: string, cancellerName: string, slotStart: Date) {
   const when = fmtSlot(slotStart);
-  const link = `${APP_URL}/app/schedule`;
+  const link = `${APP_URL}/schedule`;
   const subject = `1:1 cancelled by ${cancellerName}`;
   const text = `${cancellerName} cancelled your 1:1 on ${when}.\n\nView your schedule: ${link}`;
   const html = `<p><strong>${cancellerName}</strong> cancelled your 1:1 on <strong>${when}</strong>.</p><p><a href="${link}">View your schedule</a></p>`;

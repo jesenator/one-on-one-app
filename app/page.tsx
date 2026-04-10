@@ -3,7 +3,7 @@ import { getSession } from "@/lib/session";
 
 export default async function Home() {
   const s = await getSession();
-  if (s.userId && s.retreatId) redirect("/app/schedule");
+  if (s.userId && s.retreatId) redirect("/schedule");
   return (
     <main className="min-h-screen flex items-center justify-center px-6 py-16 bg-zinc-50 text-zinc-900">
       <div className="w-full max-w-md bg-white rounded-xl border border-zinc-200 shadow-sm p-8 text-center">

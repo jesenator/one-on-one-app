@@ -25,5 +25,5 @@ export default async function RetreatJoinPage({
   });
   session.retreatId = retreatId;
   await session.save();
-  redirect("/app/schedule");
+  redirect("/schedule");
 }

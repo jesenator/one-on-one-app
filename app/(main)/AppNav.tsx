@@ -3,9 +3,9 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const TABS = [
-  { href: "/app/schedule", label: "Schedule" },
-  { href: "/app/attendees", label: "Attendees" },
-  { href: "/app/profile", label: "Profile" },
+  { href: "/schedule", label: "Schedule" },
+  { href: "/attendees", label: "Attendees" },
+  { href: "/profile", label: "Profile" },
 ];
 
 export default function AppNav({ admin }: { admin: boolean }) {
