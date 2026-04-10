@@ -54,6 +54,7 @@ export default async function AttendeeProfile({
       </p>
       <OverlapGrid
         toUserId={id}
+        toUserName={user.name || "them"}
         groups={Object.fromEntries(
           Object.entries(groups).map(([k, v]) => [
             k,

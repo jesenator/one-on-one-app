@@ -5,6 +5,7 @@ import { formatSlotTime, formatSlotDay } from "@/lib/format";
 
 type Props = {
   toUserId: string;
+  toUserName: string;
   groups: Record<string, string[]>;
   mine: string[];
   theirs: string[];
@@ -15,6 +16,7 @@ type Props = {
 
 export default function OverlapGrid({
   toUserId,
+  toUserName,
   groups,
   mine,
   theirs,
@@ -25,6 +27,7 @@ export default function OverlapGrid({
   const router = useRouter();
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [confirm, setConfirm] = useState<string | null>(null);
   const mineSet = new Set(mine);
   const theirsSet = new Set(theirs);
   const myBookedSet = new Set(myBooked);
@@ -32,6 +35,7 @@ export default function OverlapGrid({
   const [pendingSet, setPendingSet] = useState(new Set(pending));
 
   async function request(iso: string) {
+    setConfirm(null);
     setBusy(iso);
     setError(null);
     const res = await fetch("/api/requests", {
@@ -101,7 +105,7 @@ export default function OverlapGrid({
                 <button
                   key={iso}
                   disabled={!clickable || busy === iso}
-                  onClick={() => clickable && request(iso)}
+                  onClick={() => clickable && setConfirm(iso)}
                   className={`py-2 rounded-md text-xs font-medium border transition ${cls}`}
                   title={
                     clickable
@@ -118,6 +122,41 @@ export default function OverlapGrid({
           </div>
         </div>
       ))}
+
+      {confirm && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
+          onClick={() => setConfirm(null)}
+        >
+          <div
+            className="bg-white rounded-xl border border-zinc-200 shadow-lg p-6 w-full max-w-sm mx-4"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 className="text-base font-semibold mb-1">Request 1:1</h3>
+            <p className="text-sm text-zinc-600 mb-4">
+              Request a meeting with {toUserName} on{" "}
+              {formatSlotDay(new Date(confirm))} at{" "}
+              {formatSlotTime(new Date(confirm))}?
+            </p>
+            <div className="flex gap-2 justify-end">
+              <button
+                onClick={() => setConfirm(null)}
+                className="px-4 py-2 text-sm font-medium border border-zinc-200 rounded-md hover:bg-zinc-50 transition"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => request(confirm)}
+                disabled={busy === confirm}
+                className="px-4 py-2 text-sm font-medium bg-emerald-600 text-white rounded-md hover:bg-emerald-700 transition disabled:opacity-50"
+              >
+                {busy === confirm ? "Sending..." : "Confirm"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="text-xs text-zinc-500 flex flex-wrap gap-4 pt-2">
         <span className="flex items-center gap-1.5">
           <span className="inline-block w-3 h-3 bg-emerald-600 rounded" />
