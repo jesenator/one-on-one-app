@@ -2,10 +2,7 @@ import { redirect, notFound } from "next/navigation";
 import { getSession } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { getRetreat, generateSlots, groupSlotsByDay } from "@/lib/config";
-import {
-  getMyAvailability,
-  getAcceptedMeetingSlots,
-} from "@/lib/availability";
+import { getMyAvailability } from "@/lib/availability";
 import OverlapGrid from "./OverlapGrid";
 
 export default async function AttendeeProfile({
@@ -27,11 +24,28 @@ export default async function AttendeeProfile({
   const slots = generateSlots(retreat);
   const groups = groupSlotsByDay(slots);
 
-  const [mine, theirs, myBooked, theirBooked, pending] = await Promise.all([
+  const [mine, theirs, myAccepted, theirBooked, pending] = await Promise.all([
     getMyAvailability(s.userId, s.retreatId),
     getMyAvailability(id, s.retreatId),
-    getAcceptedMeetingSlots(s.userId, s.retreatId),
-    getAcceptedMeetingSlots(id, s.retreatId),
+    prisma.meetingRequest.findMany({
+      where: {
+        retreatId: s.retreatId,
+        status: "accepted",
+        OR: [{ fromUserId: s.userId }, { toUserId: s.userId }],
+      },
+      include: {
+        from: { select: { id: true, name: true } },
+        to: { select: { id: true, name: true } },
+      },
+    }),
+    prisma.meetingRequest.findMany({
+      where: {
+        retreatId: s.retreatId,
+        status: "accepted",
+        OR: [{ fromUserId: id }, { toUserId: id }],
+      },
+      select: { slotStart: true },
+    }),
     prisma.meetingRequest.findMany({
       where: {
         retreatId: s.retreatId,
@@ -45,12 +59,18 @@ export default async function AttendeeProfile({
     }),
   ]);
 
+  const myBookedMeetings: Record<string, string> = {};
+  for (const m of myAccepted) {
+    const other = m.fromUserId === s.userId ? m.to : m.from;
+    myBookedMeetings[m.slotStart.toISOString()] = other.name || "someone";
+  }
+
   return (
     <div>
       <h1 className="text-xl font-semibold">{user.name}</h1>
-      <p className="text-xs text-zinc-500 mb-4">{user.email}</p>
-      <p className="text-sm text-zinc-500 mb-4">
-        Tap a slot where you&apos;re both available to request a 1:1.
+      <p className="text-xs text-zinc-500 mb-3">{user.email}</p>
+      <p className="text-xs text-zinc-500 mb-4">
+        Tap a green slot to request a 1:1.
       </p>
       <OverlapGrid
         toUserId={id}
@@ -63,9 +83,10 @@ export default async function AttendeeProfile({
         )}
         mine={Array.from(mine)}
         theirs={Array.from(theirs)}
-        myBooked={Array.from(myBooked)}
-        theirBooked={Array.from(theirBooked)}
+        myBookedMeetings={myBookedMeetings}
+        theirBooked={theirBooked.map((p) => p.slotStart.toISOString())}
         pending={pending.map((p) => p.slotStart.toISOString())}
+        now={new Date().toISOString()}
       />
     </div>
   );

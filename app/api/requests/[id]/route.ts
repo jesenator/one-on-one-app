@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { getSession } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
+import { notifyRequestAccepted, notifyRequestDeclined } from "@/lib/notifications";
 
 const schema = z.object({
   action: z.enum(["accept", "decline", "cancel"]),
@@ -53,6 +54,17 @@ export async function POST(
         status: parsed.data.action === "accept" ? "accepted" : "declined",
       },
     });
+    const [fromUser, toUser] = await Promise.all([
+      prisma.user.findUnique({ where: { id: mr.fromUserId }, select: { email: true, name: true } }),
+      prisma.user.findUnique({ where: { id: mr.toUserId }, select: { name: true } }),
+    ]);
+    if (fromUser && toUser) {
+      if (parsed.data.action === "accept") {
+        notifyRequestAccepted(fromUser.email, toUser.name || "Someone", mr.slotStart);
+      } else {
+        notifyRequestDeclined(fromUser.email, toUser.name || "Someone", mr.slotStart);
+      }
+    }
   } else {
     // cancel: either party can cancel pending or accepted
     if (mr.fromUserId !== s.userId && mr.toUserId !== s.userId)

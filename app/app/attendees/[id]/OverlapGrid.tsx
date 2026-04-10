@@ -9,9 +9,10 @@ type Props = {
   groups: Record<string, string[]>;
   mine: string[];
   theirs: string[];
-  myBooked: string[];
+  myBookedMeetings: Record<string, string>;
   theirBooked: string[];
   pending: string[];
+  now: string;
 };
 
 export default function OverlapGrid({
@@ -20,9 +21,10 @@ export default function OverlapGrid({
   groups,
   mine,
   theirs,
-  myBooked,
+  myBookedMeetings,
   theirBooked,
   pending,
+  now,
 }: Props) {
   const router = useRouter();
   const [busy, setBusy] = useState<string | null>(null);
@@ -30,9 +32,10 @@ export default function OverlapGrid({
   const [confirm, setConfirm] = useState<string | null>(null);
   const mineSet = new Set(mine);
   const theirsSet = new Set(theirs);
-  const myBookedSet = new Set(myBooked);
+  const myBookedSet = new Set(Object.keys(myBookedMeetings));
   const theirBookedSet = new Set(theirBooked);
   const [pendingSet, setPendingSet] = useState(new Set(pending));
+  const nowMs = new Date(now).getTime();
 
   async function request(iso: string) {
     setConfirm(null);
@@ -55,7 +58,7 @@ export default function OverlapGrid({
 
   const days = Object.keys(groups).sort();
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {error && (
         <div className="text-sm text-red-700 bg-red-50 border border-red-200 rounded-lg p-3">
           {error}
@@ -63,25 +66,36 @@ export default function OverlapGrid({
       )}
       {days.map((day) => (
         <div key={day}>
-          <h3 className="text-sm font-semibold text-zinc-700 mb-2">
+          <h3 className="text-xs font-semibold text-zinc-700 mb-1.5">
             {formatSlotDay(new Date(day))}
           </h3>
-          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-1.5">
+          <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-1">
             {groups[day].map((iso) => {
               const both = mineSet.has(iso) && theirsSet.has(iso);
-              const blocked =
-                myBookedSet.has(iso) || theirBookedSet.has(iso);
+              const myBlocked = myBookedSet.has(iso);
+              const theirBlocked = theirBookedSet.has(iso);
+              const blocked = myBlocked || theirBlocked;
               const isPending = pendingSet.has(iso);
               const isMineOnly = mineSet.has(iso) && !theirsSet.has(iso);
               const isTheirsOnly = !mineSet.has(iso) && theirsSet.has(iso);
+              const isPast = new Date(iso).getTime() < nowMs;
               let cls = "bg-zinc-50 text-zinc-400 border-zinc-200";
               let label: React.ReactNode = formatSlotTime(new Date(iso));
-              if (blocked) {
+              if (myBlocked) {
+                const who = myBookedMeetings[iso];
                 cls = "bg-violet-100 text-violet-800 border-violet-300";
                 label = (
                   <>
                     {formatSlotTime(new Date(iso))}
-                    <div className="text-[10px]">booked</div>
+                    <div className="text-[9px] truncate">{who}</div>
+                  </>
+                );
+              } else if (theirBlocked) {
+                cls = "bg-violet-50 text-violet-600 border-violet-200";
+                label = (
+                  <>
+                    {formatSlotTime(new Date(iso))}
+                    <div className="text-[9px]">busy</div>
                   </>
                 );
               } else if (isPending) {
@@ -89,10 +103,10 @@ export default function OverlapGrid({
                 label = (
                   <>
                     {formatSlotTime(new Date(iso))}
-                    <div className="text-[10px]">pending</div>
+                    <div className="text-[9px]">pending</div>
                   </>
                 );
-              } else if (both) {
+              } else if (both && !isPast) {
                 cls =
                   "bg-emerald-600 text-white border-emerald-600 hover:bg-emerald-700 cursor-pointer";
               } else if (isMineOnly) {
@@ -100,19 +114,25 @@ export default function OverlapGrid({
               } else if (isTheirsOnly) {
                 cls = "bg-zinc-100 text-zinc-500 border-zinc-200";
               }
-              const clickable = both && !blocked && !isPending;
+              const clickable = both && !blocked && !isPending && !isPast;
               return (
                 <button
                   key={iso}
                   disabled={!clickable || busy === iso}
                   onClick={() => clickable && setConfirm(iso)}
-                  className={`py-2 rounded-md text-xs font-medium border transition ${cls}`}
+                  className={[
+                    "py-1.5 rounded text-[11px] font-medium border transition",
+                    cls,
+                    isPast && !blocked ? "opacity-40" : "",
+                  ].join(" ")}
                   title={
-                    clickable
-                      ? "Request 1:1"
-                      : both
-                        ? "unavailable"
-                        : "not mutually available"
+                    isPast
+                      ? "past"
+                      : clickable
+                        ? "Request 1:1"
+                        : both
+                          ? "unavailable"
+                          : "not mutually available"
                   }
                 >
                   {label}
@@ -157,10 +177,10 @@ export default function OverlapGrid({
         </div>
       )}
 
-      <div className="text-xs text-zinc-500 flex flex-wrap gap-4 pt-2">
+      <div className="text-xs text-zinc-500 flex flex-wrap gap-x-4 gap-y-1 pt-1">
         <span className="flex items-center gap-1.5">
           <span className="inline-block w-3 h-3 bg-emerald-600 rounded" />
-          both free (tap to request)
+          both free
         </span>
         <span className="flex items-center gap-1.5">
           <span className="inline-block w-3 h-3 bg-emerald-50 border border-emerald-200 rounded" />
