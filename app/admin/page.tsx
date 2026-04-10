@@ -50,19 +50,43 @@ export default async function AdminPage({
   const activeId = activeTab || retreats[0]?.id;
   const active = retreats.find((r) => r.id === activeId) ?? retreats[0];
 
-  const attendees = await prisma.retreatAttendance.findMany({
-    where: { retreatId: active.id },
-    include: { user: true },
-    orderBy: { user: { name: "asc" } },
-  });
-  const meetings = await prisma.meetingRequest.findMany({
-    where: { retreatId: active.id, status: { in: ["pending", "accepted"] } },
-    include: {
-      from: { select: { name: true, email: true } },
-      to: { select: { name: true, email: true } },
-    },
-    orderBy: { slotStart: "asc" },
-  });
+  const [attendees, meetings, allRequests] = await Promise.all([
+    prisma.retreatAttendance.findMany({
+      where: { retreatId: active.id },
+      include: { user: true },
+      orderBy: { user: { name: "asc" } },
+    }),
+    prisma.meetingRequest.findMany({
+      where: { retreatId: active.id, status: { in: ["pending", "accepted"] } },
+      include: {
+        from: { select: { id: true, name: true, email: true } },
+        to: { select: { id: true, name: true, email: true } },
+      },
+      orderBy: { slotStart: "asc" },
+    }),
+    prisma.meetingRequest.findMany({
+      where: { retreatId: active.id },
+      select: { status: true, fromUserId: true, toUserId: true, from: { select: { name: true } }, to: { select: { name: true } } },
+    }),
+  ]);
+
+  const confirmed = allRequests.filter((r) => r.status === "accepted");
+  const pending = allRequests.filter((r) => r.status === "pending");
+  const declined = allRequests.filter((r) => r.status === "declined");
+  const cancelled = allRequests.filter((r) => r.status === "cancelled");
+
+  const meetingCounts: Record<string, { name: string; count: number }> = {};
+  for (const r of confirmed) {
+    for (const u of [
+      { id: r.fromUserId, name: r.from.name },
+      { id: r.toUserId, name: r.to.name },
+    ]) {
+      if (!meetingCounts[u.id]) meetingCounts[u.id] = { name: u.name || "?", count: 0 };
+      meetingCounts[u.id].count++;
+    }
+  }
+  const leaderboard = Object.values(meetingCounts).sort((a, b) => b.count - a.count).slice(0, 10);
+  const uniquePairs = new Set(confirmed.map((r) => [r.fromUserId, r.toUserId].sort().join("-"))).size;
 
   return (
     <div className="min-h-screen bg-zinc-50 text-zinc-900">
@@ -96,7 +120,29 @@ export default async function AdminPage({
           ))}
         </div>
 
-        <div className="py-8">
+        <div className="py-8 space-y-8">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <Stat label="Attendees" value={attendees.length} />
+            <Stat label="Confirmed 1:1s" value={confirmed.length} />
+            <Stat label="Unique pairs" value={uniquePairs} />
+            <Stat label="Pending" value={pending.length} />
+          </div>
+
+          {leaderboard.length > 0 && (
+            <div>
+              <h3 className="text-sm font-semibold text-zinc-700 mb-2">Most 1:1s</h3>
+              <div className="overflow-hidden rounded-xl border border-zinc-200 bg-white divide-y divide-zinc-100">
+                {leaderboard.map((l, i) => (
+                  <div key={i} className="px-4 py-2.5 flex items-center justify-between text-sm">
+                    <span>{l.name}</span>
+                    <span className="text-xs font-medium bg-emerald-100 text-emerald-800 rounded-full px-2 py-0.5">{l.count}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <div>
           <h3 className="text-sm font-semibold text-zinc-700 mb-2">
             Attendees ({attendees.length})
           </h3>
@@ -154,8 +200,18 @@ export default async function AdminPage({
               <div className="p-4 text-xs text-zinc-500">No meetings.</div>
             )}
           </div>
+          </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+function Stat({ label, value }: { label: string; value: number }) {
+  return (
+    <div className="rounded-xl border border-zinc-200 bg-white p-4">
+      <div className="text-2xl font-semibold">{value}</div>
+      <div className="text-xs text-zinc-500">{label}</div>
     </div>
   );
 }

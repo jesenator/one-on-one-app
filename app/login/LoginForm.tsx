@@ -36,7 +36,7 @@ export default function LoginForm() {
       </p>
       {sent ? (
         <div className="rounded-lg bg-emerald-50 border border-emerald-200 p-4 text-sm text-emerald-800">
-          Check your email for a login link. You can close this tab.
+          Check your email for a login link. If you don&apos;t see it, check your spam folder.
         </div>
       ) : (
         <form onSubmit={submit} className="space-y-4">
