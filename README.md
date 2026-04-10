@@ -33,7 +33,7 @@ See `.env.example`. All are required for production:
 | `SESSION_SECRET` | 32+ char secret (`openssl rand -base64 32`) |
 | `SENDGRID_API_KEY` | SendGrid API key |
 | `SENDGRID_FROM_EMAIL` | Verified sender address in SendGrid |
-| `APP_URL` | Public URL (e.g. `https://your-app.vercel.app`) |
+| `APP_URL` | Public URL (e.g. `https://www.pairwise.now`) |
 
 ## Configuring retreats
 
