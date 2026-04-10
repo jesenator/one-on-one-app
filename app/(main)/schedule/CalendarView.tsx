@@ -16,7 +16,6 @@ type Props = {
   slotMeetings: Record<string, SlotMeeting>;
   highlightedSlots: string[];
   now: string;
-  hasConfirmed: boolean;
 };
 
 type SlotState =
@@ -33,7 +32,6 @@ export default function CalendarView({
   slotMeetings: initialSlotMeetings,
   highlightedSlots,
   now,
-  hasConfirmed,
 }: Props) {
   const router = useRouter();
   const [available, setAvailable] = useState<Set<string>>(
@@ -115,7 +113,7 @@ export default function CalendarView({
     const time = formatSlotTime(new Date(iso));
 
     const base =
-      "slot-card flex items-center gap-2 px-3 py-2 rounded-md border text-sm";
+      "slot-card flex items-center gap-2 pl-3 pr-0 py-0 rounded-md border text-sm overflow-hidden min-h-[36px]";
     const highlightCls = isHighlighted
       ? "ring-2 ring-amber-400/60 border-amber-300 bg-amber-50/40"
       : "";
@@ -146,24 +144,14 @@ export default function CalendarView({
           <span className="text-sm font-medium text-emerald-900 truncate flex-1">
             {state.meeting.otherPersonName}
           </span>
-          <div className="flex gap-1.5 shrink-0">
-            <a
-              href={`/api/meetings/${state.meeting.requestId}/ics`}
-              className="p-1 border border-emerald-200 text-emerald-600 rounded hover:bg-emerald-100 transition"
-              title="Download .ics"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-3.5 h-3.5">
-                <path d="M10.75 2.75a.75.75 0 0 0-1.5 0v8.614L6.295 8.235a.75.75 0 1 0-1.09 1.03l4.25 4.5a.75.75 0 0 0 1.09 0l4.25-4.5a.75.75 0 0 0-1.09-1.03l-2.955 3.129V2.75Z" />
-                <path d="M3.5 12.75a.75.75 0 0 0-1.5 0v2.5A2.75 2.75 0 0 0 4.75 18h10.5A2.75 2.75 0 0 0 18 15.25v-2.5a.75.75 0 0 0-1.5 0v2.5c0 .69-.56 1.25-1.25 1.25H4.75c-.69 0-1.25-.56-1.25-1.25v-2.5Z" />
-              </svg>
-            </a>
+          <div className="flex self-stretch shrink-0 w-[72px] border-l border-emerald-200">
             <button
               onClick={() => {
                 if (window.confirm("Cancel this 1:1?"))
                   act(state.meeting.requestId, "cancel", iso);
               }}
               disabled={busy === state.meeting.requestId}
-              className="px-2 py-0.5 border border-red-200 text-red-500 rounded text-[11px] font-medium hover:bg-red-50 transition"
+              className="self-stretch flex-1 text-red-400 text-xs font-medium hover:bg-red-50 hover:text-red-600 transition"
             >
               Cancel
             </button>
@@ -185,18 +173,18 @@ export default function CalendarView({
           <span className="text-sm font-medium text-amber-900 truncate flex-1">
             {state.meeting.otherPersonName}
           </span>
-          <div className="flex gap-1.5 shrink-0">
+          <div className="flex self-stretch shrink-0 w-[112px] border-l border-amber-200">
             <button
               onClick={() => act(state.meeting.requestId, "accept", iso)}
               disabled={busy === state.meeting.requestId}
-              className="px-2.5 py-0.5 bg-emerald-600 text-white rounded text-[11px] font-semibold hover:bg-emerald-700 transition disabled:opacity-50"
+              className="self-stretch flex-1 text-emerald-600 text-xs font-semibold hover:bg-emerald-50 transition disabled:opacity-50"
             >
               Accept
             </button>
             <button
               onClick={() => act(state.meeting.requestId, "decline", iso)}
               disabled={busy === state.meeting.requestId}
-              className="px-2.5 py-0.5 border border-stone-200 text-stone-500 rounded text-[11px] font-medium hover:bg-stone-50 transition disabled:opacity-50"
+              className="self-stretch flex-1 border-l border-amber-200 text-stone-400 text-xs font-medium hover:bg-stone-50 hover:text-stone-600 transition disabled:opacity-50"
             >
               Decline
             </button>
@@ -219,16 +207,18 @@ export default function CalendarView({
             {state.meeting.otherPersonName}
           </span>
           <span className="text-[11px] text-stone-400 shrink-0 italic">waiting</span>
-          <button
-            onClick={() => {
-              if (window.confirm("Cancel this request?"))
-                act(state.meeting.requestId, "cancel", iso);
-            }}
-            disabled={busy === state.meeting.requestId}
-            className="px-2 py-0.5 border border-stone-200 text-stone-400 rounded text-[11px] hover:bg-stone-50 hover:text-stone-600 transition shrink-0"
-          >
-            Cancel
-          </button>
+          <div className="flex self-stretch shrink-0 w-[72px] border-l border-stone-200">
+            <button
+              onClick={() => {
+                if (window.confirm("Cancel this request?"))
+                  act(state.meeting.requestId, "cancel", iso);
+              }}
+              disabled={busy === state.meeting.requestId}
+              className="self-stretch flex-1 text-stone-400 text-xs font-medium hover:bg-stone-50 hover:text-stone-600 transition"
+            >
+              Cancel
+            </button>
+          </div>
         </div>
       );
     }
@@ -248,12 +238,14 @@ export default function CalendarView({
           >
             Available &rarr;
           </button>
-          <button
-            onClick={() => toggleBlock(iso)}
-            className="px-2 py-0.5 border border-stone-200 text-stone-400 rounded text-[11px] hover:bg-stone-100 hover:text-stone-600 transition shrink-0"
-          >
-            Block
-          </button>
+          <div className="flex self-stretch shrink-0 w-[72px] border-l border-stone-200">
+            <button
+              onClick={() => toggleBlock(iso)}
+              className="self-stretch flex-1 text-stone-400 text-xs font-medium hover:bg-stone-100 hover:text-stone-600 transition"
+            >
+              Block
+            </button>
+          </div>
         </div>
       );
     }
@@ -262,18 +254,20 @@ export default function CalendarView({
     return (
       <div
         key={iso}
-        className={`${base} border-stone-100 bg-stone-50/50 opacity-50 ${highlightCls}`}
+        className={`${base} border-stone-200 bg-stone-50 ${highlightCls}`}
       >
         <span className="text-xs text-stone-400 w-16 shrink-0 font-medium">
           {time}
         </span>
         <span className="text-sm text-stone-400 flex-1">Blocked</span>
-        <button
-          onClick={() => toggleBlock(iso)}
-          className="px-2 py-0.5 border border-stone-200 text-stone-400 rounded text-[11px] hover:bg-stone-100 hover:text-stone-600 transition shrink-0"
-        >
-          Unblock
-        </button>
+        <div className="flex self-stretch shrink-0 w-[72px] border-l border-stone-200">
+          <button
+            onClick={() => toggleBlock(iso)}
+            className="self-stretch flex-1 text-stone-500 text-xs font-medium hover:bg-stone-100 hover:text-stone-700 transition"
+          >
+            Unblock
+          </button>
+        </div>
       </div>
     );
   }
@@ -286,18 +280,6 @@ export default function CalendarView({
           <h1 className="text-2xl font-bold text-stone-900">Your Schedule</h1>
           <p className="text-sm text-stone-400 mt-0.5">Manage your availability and meetings</p>
         </div>
-        {hasConfirmed && (
-          <a
-            href="/api/meetings/ics"
-            className="text-xs px-3.5 py-2 bg-accent-500 text-white rounded-md font-semibold hover:bg-accent-600 transition inline-flex items-center gap-2"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-3.5 h-3.5">
-              <path d="M10.75 2.75a.75.75 0 0 0-1.5 0v8.614L6.295 8.235a.75.75 0 1 0-1.09 1.03l4.25 4.5a.75.75 0 0 0 1.09 0l4.25-4.5a.75.75 0 0 0-1.09-1.03l-2.955 3.129V2.75Z" />
-              <path d="M3.5 12.75a.75.75 0 0 0-1.5 0v2.5A2.75 2.75 0 0 0 4.75 18h10.5A2.75 2.75 0 0 0 18 15.25v-2.5a.75.75 0 0 0-1.5 0v2.5c0 .69-.56 1.25-1.25 1.25H4.75c-.69 0-1.25-.56-1.25-1.25v-2.5Z" />
-            </svg>
-            Download all
-          </a>
-        )}
       </div>
 
       {/* Legend */}

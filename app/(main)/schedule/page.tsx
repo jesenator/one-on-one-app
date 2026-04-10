@@ -42,8 +42,6 @@ export default async function SchedulePage() {
     }
   > = {};
 
-  let hasConfirmed = false;
-
   for (const r of allRequests) {
     const iso = r.slotStart.toISOString();
     const isIncoming = r.toUserId === s.userId && r.status === "pending";
@@ -51,7 +49,6 @@ export default async function SchedulePage() {
     const isConfirmed = r.status === "accepted";
 
     if (!isIncoming && !isOutgoing && !isConfirmed) continue;
-    if (isConfirmed) hasConfirmed = true;
 
     const other = r.fromUserId === s.userId ? r.to : r.from;
     slotMeetings[iso] = {
@@ -74,7 +71,6 @@ export default async function SchedulePage() {
       slotMeetings={slotMeetings}
       highlightedSlots={retreat.highlightedSlots ?? []}
       now={new Date().toISOString()}
-      hasConfirmed={hasConfirmed}
     />
   );
 }
