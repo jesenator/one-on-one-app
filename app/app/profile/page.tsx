@@ -16,14 +16,6 @@ async function updateName(formData: FormData) {
   redirect("/app/profile");
 }
 
-async function leaveRetreat() {
-  "use server";
-  const session = await getSession();
-  if (!session.userId || !session.retreatId) redirect("/login");
-  session.retreatId = undefined;
-  await session.save();
-  redirect("/select-retreat");
-}
 
 export default async function ProfilePage() {
   const s = await getSession();
@@ -63,18 +55,11 @@ export default async function ProfilePage() {
         </a>
       )}
 
-      <div className="flex gap-4">
-        <form action={leaveRetreat}>
-          <button className="text-sm text-zinc-600 border border-zinc-200 rounded-md px-3 py-1.5 hover:bg-zinc-50 transition">
-            Switch retreat
-          </button>
-        </form>
-        <form action="/api/auth/logout" method="post">
-          <button className="text-sm text-red-600 border border-red-200 rounded-md px-3 py-1.5 hover:bg-red-50 transition">
-            Log out
-          </button>
-        </form>
-      </div>
+      <form action="/api/auth/logout" method="post">
+        <button className="text-sm text-red-600 border border-red-200 rounded-md px-3 py-1.5 hover:bg-red-50 transition">
+          Log out
+        </button>
+      </form>
     </div>
   );
 }

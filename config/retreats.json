@@ -1,8 +1,10 @@
 {
+  "_note": "Share the joinPath URL with attendees to let them join directly, e.g. https://one-on-one-app-six.vercel.app/west-coast-ea-2026",
   "retreats": [
     {
       "id": "west-coast-ea-2026",
       "name": "West Coast EA Retreat",
+      "joinPath": "/west-coast-ea-2026",
       "timezone": "America/Los_Angeles",
       "active": true,
       "slots": {
@@ -16,6 +18,7 @@
     {
       "id": "midwest-ea-2026",
       "name": "Midwest EA Retreat",
+      "joinPath": "/midwest-ea-2026",
       "timezone": "America/Chicago",
       "active": true,
       "slots": {
@@ -29,6 +32,7 @@
     {
       "id": "northeast-ea-2026",
       "name": "Northeast EA Retreat",
+      "joinPath": "/northeast-ea-2026",
       "timezone": "America/New_York",
       "active": true,
       "slots": {

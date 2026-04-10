@@ -15,6 +15,7 @@ function hashToken(token: string) {
 export async function createMagicLink(
   email: string,
   name: string,
+  retreat?: string,
 ): Promise<string> {
   const token = crypto.randomBytes(32).toString("base64url");
   const tokenHash = hashToken(token);
@@ -27,7 +28,9 @@ export async function createMagicLink(
     },
   });
   const base = process.env.APP_URL || "http://localhost:3000";
-  return `${base}/api/auth/callback?token=${token}`;
+  let url = `${base}/api/auth/callback?token=${token}`;
+  if (retreat) url += `&retreat=${encodeURIComponent(retreat)}`;
+  return url;
 }
 
 export async function sendMagicLinkEmail(email: string, link: string) {
