@@ -296,10 +296,12 @@ export default function CalendarView({
           <span className="inline-block w-3 h-3 bg-stone-300 rounded" />
           waiting
         </span>
-        <span className="flex items-center gap-2">
-          <span className="inline-block w-3 h-3 ring-2 ring-amber-400 bg-amber-50 rounded" />
-          designated 1:1 time
-        </span>
+        {highlightedSlots.length > 0 && (
+          <span className="flex items-center gap-2">
+            <span className="inline-block w-3 h-3 ring-2 ring-amber-400 bg-amber-50 rounded" />
+            designated 1:1 time
+          </span>
+        )}
       </div>
 
       {/* Mobile: Day tabs */}
