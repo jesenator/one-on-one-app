@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { getSession } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
-import { notifyRequestAccepted, notifyRequestDeclined } from "@/lib/notifications";
+import { notifyRequestAccepted, notifyRequestDeclined, notifyMeetingCancelled } from "@/lib/notifications";
 
 const schema = z.object({
   action: z.enum(["accept", "decline", "cancel"]),
@@ -73,6 +73,14 @@ export async function POST(
       where: { id },
       data: { status: "cancelled" },
     });
+    const otherId = mr.fromUserId === s.userId ? mr.toUserId : mr.fromUserId;
+    const [otherUser, canceller] = await Promise.all([
+      prisma.user.findUnique({ where: { id: otherId }, select: { email: true } }),
+      prisma.user.findUnique({ where: { id: s.userId }, select: { name: true } }),
+    ]);
+    if (otherUser && canceller) {
+      notifyMeetingCancelled(otherUser.email, canceller.name || "Someone", mr.slotStart);
+    }
   }
   return NextResponse.json({ ok: true });
 }

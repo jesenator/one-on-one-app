@@ -51,3 +51,12 @@ export function notifyRequestDeclined(toEmail: string, declinerName: string, slo
   const html = `<p><strong>${declinerName}</strong> declined your 1:1 request for <strong>${when}</strong>.</p><p><a href="${link}">Browse attendees to find another time</a></p>`;
   send(toEmail, subject, text, html).catch(() => {});
 }
+
+export function notifyMeetingCancelled(toEmail: string, cancellerName: string, slotStart: Date) {
+  const when = fmtSlot(slotStart);
+  const link = `${APP_URL}/app/schedule`;
+  const subject = `1:1 cancelled by ${cancellerName}`;
+  const text = `${cancellerName} cancelled your 1:1 on ${when}.\n\nView your schedule: ${link}`;
+  const html = `<p><strong>${cancellerName}</strong> cancelled your 1:1 on <strong>${when}</strong>.</p><p><a href="${link}">View your schedule</a></p>`;
+  send(toEmail, subject, text, html).catch(() => {});
+}

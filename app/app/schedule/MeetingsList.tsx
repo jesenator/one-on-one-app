@@ -156,7 +156,7 @@ export default function MeetingsList({
                   </div>
                 </div>
                 <button
-                  onClick={() => act(r.id, "cancel")}
+                  onClick={() => { if (window.confirm("Cancel this request?")) act(r.id, "cancel"); }}
                   className="px-2 py-1 border border-zinc-200 text-zinc-600 rounded text-xs hover:bg-zinc-50 transition shrink-0"
                 >
                   Cancel

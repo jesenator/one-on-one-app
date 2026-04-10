@@ -15,7 +15,7 @@ export default function LoginPage() {
     const res = await fetch("/api/auth/request", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, name }),
+      body: JSON.stringify({ email: email.trim(), name: name.trim() }),
     });
     setLoading(false);
     if (!res.ok) {
@@ -44,6 +44,7 @@ export default function LoginPage() {
                 required
                 value={name}
                 onChange={(e) => setName(e.target.value)}
+                autoComplete="name"
                 className="w-full border border-zinc-200 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-zinc-900/10 focus:border-zinc-400"
               />
             </div>
@@ -51,9 +52,11 @@ export default function LoginPage() {
               <label className="block text-sm font-medium text-zinc-700 mb-1">Email</label>
               <input
                 type="email"
+                inputMode="email"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                autoComplete="email"
                 className="w-full border border-zinc-200 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-zinc-900/10 focus:border-zinc-400"
               />
             </div>

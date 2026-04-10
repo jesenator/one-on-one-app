@@ -6,15 +6,17 @@ type Attendee = { id: string; name: string; email: string };
 
 export default function AttendeeList({ attendees }: { attendees: Attendee[] }) {
   const [q, setQ] = useState("");
+  const ql = q.toLowerCase();
   const filtered = attendees.filter((a) =>
-    a.name.toLowerCase().includes(q.toLowerCase()),
+    a.name.toLowerCase().includes(ql) || a.email.toLowerCase().includes(ql),
   );
   return (
     <>
       <input
         value={q}
         onChange={(e) => setQ(e.target.value)}
-        placeholder="Search by name"
+        placeholder="Search by name or email"
+        autoFocus
         className="w-full border border-zinc-200 rounded-md px-3 py-2 text-sm mb-4 focus:outline-none focus:ring-2 focus:ring-zinc-900/10 focus:border-zinc-400"
       />
       {filtered.length === 0 ? (
