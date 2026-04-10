@@ -356,7 +356,7 @@ export default function CalendarView({
         </span>
         <span className="flex items-center gap-1.5">
           <span className="inline-block w-2.5 h-2.5 ring-2 ring-amber-400 bg-amber-50 rounded" />
-          priority slot
+          designated 1:1 time
         </span>
       </div>
     </div>
