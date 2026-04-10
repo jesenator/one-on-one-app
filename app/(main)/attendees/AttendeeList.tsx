@@ -83,7 +83,7 @@ export default function AttendeeList({
           {filtered.map((a) => (
             <Link
               key={a.id}
-              href={`/attendees/${a.id}`}
+              href={slotFilter ? `/attendees/${a.id}?slot=${encodeURIComponent(slotFilter)}` : `/attendees/${a.id}`}
               className="flex items-center gap-3 p-4 hover:bg-accent-50/40 transition group"
             >
               <div className={`w-9 h-9 rounded-md ${getAvatarColor(a.name)} flex items-center justify-center text-white text-xs font-bold shrink-0`}>

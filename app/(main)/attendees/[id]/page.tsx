@@ -1,18 +1,21 @@
 import { redirect, notFound } from "next/navigation";
 import { getSession } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
-import { getRetreat, generateSlots, groupSlotsByDay } from "@/lib/config";
+import { getRetreat, generateSlots, groupSlotsByDay, nowInRetreatTz } from "@/lib/config";
 import { getMyAvailability } from "@/lib/availability";
 import OverlapGrid from "./OverlapGrid";
 
 export default async function AttendeeProfile({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ slot?: string }>;
 }) {
   const s = await getSession();
   if (!s.userId || !s.retreatId) redirect("/login");
   const { id } = await params;
+  const { slot: preselectedSlot } = await searchParams;
   const user = await prisma.user.findUnique({ where: { id } });
   if (!user) notFound();
   const member = await prisma.retreatAttendance.findUnique({
@@ -94,7 +97,8 @@ export default async function AttendeeProfile({
         myBookedMeetings={myBookedMeetings}
         theirBooked={theirBooked.map((p) => p.slotStart.toISOString())}
         pending={pending.map((p) => p.slotStart.toISOString())}
-        now={new Date().toISOString()}
+        now={nowInRetreatTz(retreat).toISOString()}
+        preselectedSlot={preselectedSlot}
       />
     </div>
   );

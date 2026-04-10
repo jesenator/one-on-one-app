@@ -13,6 +13,7 @@ type Props = {
   theirBooked: string[];
   pending: string[];
   now: string;
+  preselectedSlot?: string;
 };
 
 type SlotState = "available" | "pending" | "booked" | "none";
@@ -27,11 +28,12 @@ export default function OverlapGrid({
   theirBooked,
   pending,
   now,
+  preselectedSlot,
 }: Props) {
   const router = useRouter();
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [confirm, setConfirm] = useState<string | null>(null);
+  const [confirm, setConfirm] = useState<string | null>(preselectedSlot ?? null);
   const mineSet = new Set(mine);
   const theirsSet = new Set(theirs);
   const myBookedSet = new Set(Object.keys(myBookedMeetings));
@@ -87,21 +89,73 @@ export default function OverlapGrid({
     0,
   );
 
-  const style: Record<SlotState, { cls: string; sub?: (iso: string) => string }> = {
-    available: {
-      cls: "bg-accent-500 text-white border-accent-500 hover:bg-accent-600 cursor-pointer shadow-sm",
-    },
-    pending: {
-      cls: "bg-amber-50 text-amber-700 border-amber-200",
-    },
-    booked: {
-      cls: "bg-stone-50 text-stone-400 border-stone-200",
-      sub: () => "unavailable",
-    },
-    none: {
-      cls: "bg-stone-50 text-stone-400 border-stone-200",
-    },
-  };
+  const base =
+    "slot-card flex items-center gap-2 pl-3 pr-0 py-0 rounded-md border text-sm overflow-hidden min-h-[36px]";
+
+  function renderSlot(iso: string, state: SlotState) {
+    const time = formatSlotTime(new Date(iso));
+
+    if (state === "available") {
+      return (
+        <div
+          key={iso}
+          className={`${base} border-accent-200 bg-accent-50 hover:bg-accent-100 cursor-pointer transition`}
+          onClick={() => setConfirm(iso)}
+        >
+          <span className="text-xs text-accent-700 w-16 shrink-0 font-semibold">
+            {time}
+          </span>
+          <div className="w-2 h-2 rounded-full bg-accent-500 shrink-0" />
+          <span className="text-sm font-medium text-accent-700 truncate flex-1">
+            Both free
+          </span>
+          <div className="flex self-stretch shrink-0 w-[72px] border-l border-accent-200">
+            <button
+              disabled={busy === iso}
+              className="self-stretch flex-1 text-accent-600 text-xs font-semibold hover:bg-accent-200 transition"
+            >
+              Request
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    if (state === "pending") {
+      return (
+        <div
+          key={iso}
+          className={`${base} border-amber-200 bg-amber-50`}
+        >
+          <span className="text-xs text-amber-700 w-16 shrink-0 font-semibold">
+            {time}
+          </span>
+          <div className="w-2 h-2 rounded-full bg-amber-500 shrink-0 animate-pulse" />
+          <span className="text-sm font-medium text-amber-800 truncate flex-1">
+            Requested
+          </span>
+        </div>
+      );
+    }
+
+    if (state === "booked") {
+      return (
+        <div
+          key={iso}
+          className={`${base} border-stone-100 bg-stone-50 opacity-50`}
+        >
+          <span className="text-xs text-stone-400 w-16 shrink-0 font-medium">
+            {time}
+          </span>
+          <span className="text-sm text-stone-400 truncate flex-1">
+            Unavailable
+          </span>
+        </div>
+      );
+    }
+
+    return null;
+  }
 
   return (
     <div className="space-y-5">
@@ -112,11 +166,11 @@ export default function OverlapGrid({
           both free
         </span>
         <span className="flex items-center gap-2">
-          <span className="inline-block w-3 h-3 bg-amber-50 border border-amber-200 rounded" />
+          <span className="inline-block w-3 h-3 bg-amber-500 rounded" />
           requested
         </span>
         <span className="flex items-center gap-2">
-          <span className="inline-block w-3 h-3 bg-stone-100 border border-stone-200 rounded" />
+          <span className="inline-block w-3 h-3 bg-stone-300 rounded" />
           unavailable
         </span>
       </div>
@@ -142,29 +196,8 @@ export default function OverlapGrid({
           <h3 className="text-xs font-bold text-stone-500 uppercase tracking-wider mb-2.5">
             {formatSlotDay(new Date(day))}
           </h3>
-          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2">
-            {slots.map(({ iso, state }) => {
-              const { cls, sub } = style[state];
-              const clickable = state === "available";
-              return (
-                <button
-                  key={iso}
-                  disabled={!clickable || busy === iso}
-                  onClick={() => clickable && setConfirm(iso)}
-                  className={[
-                    "py-2.5 px-1.5 rounded-md text-xs font-semibold border transition",
-                    cls,
-                  ].join(" ")}
-                >
-                  {formatSlotTime(new Date(iso))}
-                  {sub && (
-                    <div className="text-[10px] font-normal truncate opacity-75">
-                      {sub(iso)}
-                    </div>
-                  )}
-                </button>
-              );
-            })}
+          <div className="space-y-1.5">
+            {slots.map(({ iso, state }) => renderSlot(iso, state))}
           </div>
         </div>
       ))}
@@ -214,7 +247,6 @@ export default function OverlapGrid({
           </div>
         </div>
       )}
-
     </div>
   );
 }
