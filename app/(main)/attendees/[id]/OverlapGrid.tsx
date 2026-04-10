@@ -71,14 +71,19 @@ export default function OverlapGrid({
 
   const days = Object.keys(groups).sort();
 
-  const relevantDays = days
-    .map((day) => {
-      const slots = groups[day]
-        .map((iso) => ({ iso, state: classify(iso) }))
-        .filter((s): s is { iso: string; state: SlotState } => s.state !== null);
-      return { day, slots };
-    })
-    .filter((d) => d.slots.some((s) => s.state !== "none"));
+  // Classify all slots per day, filtering out past and "none" states
+  const daySlots = days.map((day) => {
+    const slots = groups[day]
+      .map((iso) => ({ iso, state: classify(iso) }))
+      .filter((s): s is { iso: string; state: SlotState } => s.state !== null && s.state !== "none");
+    return { day, slots };
+  });
+
+  const relevantDays = daySlots.filter((d) => d.slots.length > 0);
+
+  const firstRelevantDay = relevantDays[0]?.day ?? days[0];
+  const [activeDay, setActiveDay] = useState(firstRelevantDay);
+  const activeDaySlots = daySlots.find((d) => d.day === activeDay)?.slots ?? [];
 
   const totalAvailable = relevantDays.reduce(
     (n, d) => n + d.slots.filter((s) => s.state === "available").length,
@@ -191,16 +196,52 @@ export default function OverlapGrid({
         </div>
       )}
 
-      {relevantDays.map(({ day, slots }) => (
-        <div key={day}>
-          <h3 className="text-xs font-bold text-stone-500 uppercase tracking-wider mb-2.5">
+      {/* Mobile: Day tabs */}
+      <div className="flex gap-1.5 mb-5 lg:hidden overflow-x-auto">
+        {days.map((day) => (
+          <button
+            key={day}
+            onClick={() => setActiveDay(day)}
+            className={[
+              "flex-1 py-2.5 rounded-md text-sm font-semibold transition border min-w-0",
+              activeDay === day
+                ? "bg-accent-500 text-white border-accent-500"
+                : "bg-white text-stone-500 border-stone-200 hover:bg-stone-50 hover:text-stone-700",
+            ].join(" ")}
+          >
             {formatSlotDay(new Date(day))}
-          </h3>
-          <div className="space-y-1.5">
-            {slots.map(({ iso, state }) => renderSlot(iso, state))}
+          </button>
+        ))}
+      </div>
+
+      {/* Desktop: columns | Mobile: single day */}
+      <div
+        className="hidden lg:grid gap-5"
+        style={{ gridTemplateColumns: `repeat(${days.length}, 1fr)` }}
+      >
+        {daySlots.map(({ day, slots }) => (
+          <div key={day}>
+            <h3 className="text-xs font-bold text-stone-500 uppercase tracking-wider mb-3 sticky top-0 bg-stone-50 py-1.5 z-10">
+              {formatSlotDay(new Date(day))}
+            </h3>
+            <div className="space-y-1.5">
+              {slots.length > 0
+                ? slots.map(({ iso, state }) => renderSlot(iso, state))
+                : <div className="text-xs text-stone-300 py-2">No overlap</div>
+              }
+            </div>
           </div>
+        ))}
+      </div>
+
+      <div className="lg:hidden">
+        <div className="space-y-1.5">
+          {activeDaySlots.length > 0
+            ? activeDaySlots.map(({ iso, state }) => renderSlot(iso, state))
+            : <div className="text-xs text-stone-300 py-2">No overlap on this day</div>
+          }
         </div>
-      ))}
+      </div>
 
       {confirm && (
         <div
