@@ -1,9 +1,26 @@
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/session";
+import { getRetreat } from "@/lib/config";
+import { prisma } from "@/lib/prisma";
 
 export default async function Home() {
   const s = await getSession();
   if (s.userId && s.retreatId) redirect("/schedule");
+
+  // Logged in but no retreat in session (e.g. logged back in via a plain
+  // magic link after logout). Restore most recent active attendance.
+  if (s.userId && !s.retreatId) {
+    const attendances = await prisma.retreatAttendance.findMany({
+      where: { userId: s.userId },
+      orderBy: { createdAt: "desc" },
+    });
+    const recent = attendances.find((a) => getRetreat(a.retreatId)?.active);
+    if (recent) {
+      s.retreatId = recent.retreatId;
+      await s.save();
+      redirect("/schedule");
+    }
+  }
   return (
     <main className="min-h-screen flex items-center justify-center px-6 py-16 bg-stone-50 text-stone-900">
       <div className="w-full max-w-md bg-white rounded-lg border border-stone-200 shadow-sm p-10 text-center">

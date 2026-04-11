@@ -31,6 +31,20 @@ export async function GET(req: Request) {
     return NextResponse.redirect(new URL("/schedule", url));
   }
 
+  // No retreat in the magic link (common after a logout → plain /login flow).
+  // Restore the user's most recent active retreat so they don't get dumped
+  // onto the "ask your organizer for a link" homepage.
+  const attendances = await prisma.retreatAttendance.findMany({
+    where: { userId: user.id },
+    orderBy: { createdAt: "desc" },
+  });
+  const recent = attendances.find((a) => getRetreat(a.retreatId)?.active);
+  if (recent) {
+    session.retreatId = recent.retreatId;
+    await session.save();
+    return NextResponse.redirect(new URL("/schedule", url));
+  }
+
   await session.save();
   return NextResponse.redirect(new URL("/", url));
 }

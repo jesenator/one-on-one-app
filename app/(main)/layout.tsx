@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/session";
 import { getRetreat, isAdminEmail } from "@/lib/config";
+import { prisma } from "@/lib/prisma";
 import AppNav from "./AppNav";
 
 export default async function AppLayout({
@@ -10,7 +11,19 @@ export default async function AppLayout({
   children: React.ReactNode;
 }) {
   const session = await getSession();
-  if (!session.userId || !session.retreatId) redirect("/login");
+  if (!session.userId) redirect("/login");
+  // Logged in but no retreat in session — restore from attendance so we don't
+  // bounce the user back to /login after a plain magic-link re-login.
+  if (!session.retreatId) {
+    const attendances = await prisma.retreatAttendance.findMany({
+      where: { userId: session.userId },
+      orderBy: { createdAt: "desc" },
+    });
+    const recent = attendances.find((a) => getRetreat(a.retreatId)?.active);
+    if (!recent) redirect("/login");
+    session.retreatId = recent.retreatId;
+    await session.save();
+  }
   const retreat = getRetreat(session.retreatId);
   const admin = isAdminEmail(session.email || "");
 
