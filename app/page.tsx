@@ -1,6 +1,7 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/session";
-import { getRetreat } from "@/lib/config";
+import { getActiveRetreats, getRetreat, nowInRetreatTz } from "@/lib/config";
 import { prisma } from "@/lib/prisma";
 
 export default async function Home() {
@@ -21,6 +22,14 @@ export default async function Home() {
       redirect("/schedule");
     }
   }
+
+  // Not logged in (or logged in with no attendance): show join links for any
+  // active retreat whose end date is still in the future, in its own tz.
+  // Parsed as "fake UTC" to match generateSlots / nowInRetreatTz convention.
+  const upcoming = getActiveRetreats().filter((r) => {
+    const endFakeUtc = new Date(r.slots.end + ":00Z").getTime();
+    return endFakeUtc > nowInRetreatTz(r).getTime();
+  });
   return (
     <main className="min-h-screen flex items-center justify-center px-6 py-16 bg-stone-50 text-stone-900">
       <div className="w-full max-w-md bg-white rounded-lg border border-stone-200 shadow-sm p-10 text-center">
@@ -32,8 +41,24 @@ export default async function Home() {
         </div>
         <h1 className="text-2xl font-bold mb-2 text-stone-900">EA Retreat 1:1s</h1>
         <p className="text-sm text-stone-500 leading-relaxed">
-          Use the link shared by your retreat organizer to get started.
+          {upcoming.length > 0
+            ? "Join your retreat to start scheduling 1:1s."
+            : "Use the link shared by your retreat organizer to get started."}
         </p>
+        {upcoming.length > 0 && (
+          <div className="mt-6 space-y-2 text-left">
+            {upcoming.map((r) => (
+              <Link
+                key={r.id}
+                href={r.joinPath ?? `/${r.id}`}
+                className="flex items-center justify-between gap-3 rounded-md border border-stone-200 bg-stone-50/60 px-4 py-3 text-sm font-medium text-stone-700 hover:border-accent-300 hover:bg-accent-50 hover:text-accent-700 transition"
+              >
+                <span>{r.name}</span>
+                <span aria-hidden className="text-stone-400">→</span>
+              </Link>
+            ))}
+          </div>
+        )}
       </div>
     </main>
   );
