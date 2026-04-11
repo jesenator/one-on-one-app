@@ -3,6 +3,7 @@ import { z } from "zod";
 import { getSession } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { notifyNewRequest } from "@/lib/notifications";
+import { getRetreat, nowInRetreatTz } from "@/lib/config";
 
 const schema = z.object({
   toUserId: z.string(),
@@ -18,7 +19,15 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "bad input" }, { status: 400 });
   const slotStart = new Date(parsed.data.slotStart);
 
-  if (slotStart.getTime() < Date.now()) {
+  // Slots are stored as "fake UTC" — wall-clock time in the retreat's timezone
+  // pretending to be UTC (see lib/config.ts generateSlots). Compare against
+  // the same convention, not real UTC now, or west-coast users booking later
+  // today get rejected because their local-hour < current UTC-hour.
+  const retreat = getRetreat(s.retreatId);
+  if (!retreat)
+    return NextResponse.json({ error: "retreat not found" }, { status: 400 });
+
+  if (slotStart.getTime() < nowInRetreatTz(retreat).getTime()) {
     return NextResponse.json(
       { error: "Can't book a slot in the past." },
       { status: 400 },
