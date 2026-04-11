@@ -2,6 +2,25 @@ import { redirect } from "next/navigation";
 import { getSession } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { isAdminEmail } from "@/lib/config";
+import DeleteButton from "./DeleteButton";
+
+async function deleteAccount() {
+  "use server";
+  const session = await getSession();
+  if (!session.userId) redirect("/login");
+  // Cancel all active meetings so the other party gets notified
+  await prisma.meetingRequest.updateMany({
+    where: {
+      OR: [{ fromUserId: session.userId }, { toUserId: session.userId }],
+      status: { in: ["pending", "accepted"] },
+    },
+    data: { status: "cancelled" },
+  });
+  // Cascade deletes availability, attendance, and meeting requests
+  await prisma.user.delete({ where: { id: session.userId } });
+  session.destroy();
+  redirect("/login");
+}
 
 async function updateName(formData: FormData) {
   "use server";
@@ -68,11 +87,14 @@ export default async function ProfilePage() {
         </a>
       )}
 
-      <form action="/api/auth/logout" method="post">
-        <button className="text-sm text-red-500 font-medium border border-red-200 rounded-md px-4 py-2 hover:bg-red-50 transition">
-          Log out
-        </button>
-      </form>
+      <div className="flex gap-3">
+        <form action="/api/auth/logout" method="post">
+          <button className="text-sm text-stone-500 font-medium border border-stone-200 rounded-md px-4 py-2 hover:bg-stone-50 transition">
+            Log out
+          </button>
+        </form>
+        <DeleteButton action={deleteAccount} />
+      </div>
     </div>
   );
 }
