@@ -4,6 +4,7 @@ import { getSession } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { isAdminEmail, getActiveRetreats } from "@/lib/config";
 import { formatSlotDay, formatSlotTime } from "@/lib/format";
+import ConfirmButton from "./ConfirmButton";
 
 async function removeUser(formData: FormData) {
   "use server";
@@ -173,9 +174,11 @@ export default async function AdminPage({
                 <form action={removeUser}>
                   <input type="hidden" name="userId" value={a.userId} />
                   <input type="hidden" name="retreatId" value={active.id} />
-                  <button className="text-xs text-red-500 font-medium border border-red-200 rounded-md px-2.5 py-1 hover:bg-red-50 transition">
-                    Remove
-                  </button>
+                  <ConfirmButton
+                    message={`Remove ${a.user.name}? This will cancel all their meetings.`}
+                    label="Remove"
+                    className="text-xs text-red-500 font-medium border border-red-200 rounded-md px-2.5 py-1 hover:bg-red-50 transition"
+                  />
                 </form>
               </div>
             ))}
@@ -207,9 +210,11 @@ export default async function AdminPage({
                 </div>
                 <form action={cancelMeeting}>
                   <input type="hidden" name="id" value={m.id} />
-                  <button className="text-xs text-red-500 font-medium border border-red-200 rounded-md px-2.5 py-1 hover:bg-red-50 transition">
-                    Cancel
-                  </button>
+                  <ConfirmButton
+                    message={`Cancel meeting between ${m.from.name} and ${m.to.name}?`}
+                    label="Cancel"
+                    className="text-xs text-red-500 font-medium border border-red-200 rounded-md px-2.5 py-1 hover:bg-red-50 transition"
+                  />
                 </form>
               </div>
             ))}
