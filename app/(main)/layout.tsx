@@ -39,6 +39,12 @@ export default async function AppLayout({
         </div>
       </header>
       <main className="mx-auto max-w-5xl px-6 py-8 animate-fade-in">{children}</main>
+      <footer className="mt-auto py-4 text-center text-xs text-stone-400">
+        Found a bug? Contact{" "}
+        <a href="mailto:jessewgilbert@gmail.com" className="underline hover:text-stone-600">
+          jessewgilbert@gmail.com
+        </a>
+      </footer>
     </div>
   );
 }

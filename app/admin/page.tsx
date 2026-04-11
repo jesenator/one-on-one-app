@@ -225,6 +225,12 @@ export default async function AdminPage({
           </div>
         </div>
       </div>
+      <footer className="py-4 text-center text-xs text-stone-400">
+        Found a bug? Contact{" "}
+        <a href="mailto:jessewgilbert@gmail.com" className="underline hover:text-stone-600">
+          jessewgilbert@gmail.com
+        </a>
+      </footer>
     </div>
   );
 }
