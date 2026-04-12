@@ -52,6 +52,14 @@ export function notifyRequestDeclined(toEmail: string, declinerName: string, slo
   send(toEmail, subject, text, html).catch(() => {});
 }
 
+export function notifyPendingReminder(toEmail: string, userName: string, pendingCount: number, retreatName: string) {
+  const link = `${APP_URL}/schedule`;
+  const subject = `You have ${pendingCount} pending one-on-one${pendingCount === 1 ? "" : "s"}`;
+  const text = `Hi ${userName}, you have ${pendingCount} pending one-on-one request${pendingCount === 1 ? "" : "s"} for ${retreatName}.\n\nView your schedule to accept or decline: ${link}`;
+  const html = `<p>Hi <strong>${userName}</strong>, you have <strong>${pendingCount}</strong> pending one-on-one request${pendingCount === 1 ? "" : "s"} for <strong>${retreatName}</strong>.</p><p><a href="${link}">Open your schedule to accept or decline</a></p>`;
+  return send(toEmail, subject, text, html);
+}
+
 export function notifyMeetingCancelled(toEmail: string, cancellerName: string, slotStart: Date) {
   const when = fmtSlot(slotStart);
   const link = `${APP_URL}/schedule`;

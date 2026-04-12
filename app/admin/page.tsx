@@ -2,9 +2,11 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getSession } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
-import { isAdminEmail, getActiveRetreats } from "@/lib/config";
+import { isAdminEmail, getActiveRetreats, nowInRetreatTz } from "@/lib/config";
 import { formatSlotDay, formatSlotTime } from "@/lib/format";
+import { notifyPendingReminder } from "@/lib/notifications";
 import ConfirmButton from "./ConfirmButton";
+import SendRemindersButton from "./SendRemindersButton";
 
 async function removeUser(formData: FormData) {
   "use server";
@@ -35,6 +37,39 @@ async function cancelMeeting(formData: FormData) {
     data: { status: "cancelled" },
   });
   redirect("/admin");
+}
+
+async function sendPendingReminders(_prev: string | null, formData: FormData): Promise<string> {
+  "use server";
+  const s = await getSession();
+  if (!s.email || !isAdminEmail(s.email)) redirect("/login");
+  const retreatId = String(formData.get("retreatId"));
+  const retreatName = String(formData.get("retreatName"));
+  const retreat = getActiveRetreats().find((r) => r.id === retreatId);
+  if (!retreat) return "Retreat not found.";
+
+  const pendingRequests = await prisma.meetingRequest.findMany({
+    where: { retreatId, status: "pending", slotStart: { gte: nowInRetreatTz(retreat) } },
+    select: {
+      toUserId: true,
+      to: { select: { name: true, email: true } },
+    },
+  });
+
+  const byUser: Record<string, { name: string; email: string; count: number }> = {};
+  for (const r of pendingRequests) {
+    if (!byUser[r.toUserId]) {
+      byUser[r.toUserId] = { name: r.to.name || "there", email: r.to.email, count: 0 };
+    }
+    byUser[r.toUserId].count++;
+  }
+
+  const users = Object.values(byUser);
+  await Promise.all(
+    users.map((u) => notifyPendingReminder(u.email, u.name, u.count, retreatName))
+  );
+
+  return `Sent reminders to ${users.length} ${users.length === 1 ? "person" : "people"}.`;
 }
 
 export default async function AdminPage({
@@ -89,6 +124,24 @@ export default async function AdminPage({
   const leaderboard = Object.values(meetingCounts).sort((a, b) => b.count - a.count).slice(0, 10);
   const uniquePairs = new Set(confirmed.map((r) => [r.fromUserId, r.toUserId].sort().join("-"))).size;
 
+  const futurePending = await prisma.meetingRequest.findMany({
+    where: { retreatId: active.id, status: "pending", slotStart: { gte: nowInRetreatTz(active) } },
+    select: {
+      toUserId: true,
+      to: { select: { name: true, email: true } },
+    },
+  });
+  const pendingByUser: Record<string, { name: string; email: string; count: number }> = {};
+  for (const r of futurePending) {
+    if (!pendingByUser[r.toUserId]) {
+      pendingByUser[r.toUserId] = { name: r.to.name || "?", email: r.to.email, count: 0 };
+    }
+    pendingByUser[r.toUserId].count++;
+  }
+  const pendingUsersList = Object.values(pendingByUser).sort((a, b) => b.count - a.count);
+
+  const sendRemindersForRetreat = sendPendingReminders.bind(null);
+
   return (
     <div className="min-h-screen bg-stone-50 text-stone-900">
       <div className="h-0.5 bg-accent-500" />
@@ -139,6 +192,13 @@ export default async function AdminPage({
             <Stat label="Unique pairs" value={uniquePairs} color="accent" />
             <Stat label="Pending" value={pending.length} color="amber" />
           </div>
+
+          <SendRemindersButton
+            action={sendRemindersForRetreat}
+            pendingUsers={pendingUsersList}
+            retreatId={active.id}
+            retreatName={active.name}
+          />
 
           {leaderboard.length > 0 && (
             <div>
