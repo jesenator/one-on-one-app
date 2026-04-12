@@ -43,6 +43,7 @@ export default function CalendarView({
   const nowMs = new Date(now).getTime();
   const [, startTransition] = useTransition();
   const [busy, setBusy] = useState<string | null>(null);
+  const [confirmingCancel, setConfirmingCancel] = useState<string | null>(null);
   const [showPendingModal, setShowPendingModal] = useState(false);
 
   const incomingRequests = Object.entries(meetings)
@@ -186,13 +187,27 @@ export default function CalendarView({
             <div className="flex self-stretch shrink-0 w-[72px] border-l border-emerald-200">
               <button
                 onClick={() => {
-                  if (window.confirm("Cancel this 1:1?"))
+                  if (confirmingCancel === state.meeting.requestId) {
+                    setConfirmingCancel(null);
                     act(state.meeting.requestId, "cancel", iso);
+                  } else {
+                    setConfirmingCancel(state.meeting.requestId);
+                  }
+                }}
+                onBlur={() => {
+                  if (confirmingCancel === state.meeting.requestId)
+                    setConfirmingCancel(null);
                 }}
                 disabled={busy === state.meeting.requestId}
-                className="self-stretch flex-1 text-red-400 text-xs font-medium hover:bg-red-50 hover:text-red-600 transition"
+                className={`self-stretch flex-1 text-xs font-medium transition ${
+                  confirmingCancel === state.meeting.requestId
+                    ? "text-red-600 bg-red-50 font-semibold"
+                    : "text-red-400 hover:bg-red-50 hover:text-red-600"
+                }`}
               >
-                Cancel
+                {confirmingCancel === state.meeting.requestId
+                  ? "Sure?"
+                  : "Cancel"}
               </button>
             </div>
           )}
@@ -252,13 +267,25 @@ export default function CalendarView({
           <div className="flex self-stretch shrink-0 w-[72px] border-l border-stone-200">
             <button
               onClick={() => {
-                if (window.confirm("Cancel this request?"))
+                if (confirmingCancel === state.meeting.requestId) {
+                  setConfirmingCancel(null);
                   act(state.meeting.requestId, "cancel", iso);
+                } else {
+                  setConfirmingCancel(state.meeting.requestId);
+                }
+              }}
+              onBlur={() => {
+                if (confirmingCancel === state.meeting.requestId)
+                  setConfirmingCancel(null);
               }}
               disabled={busy === state.meeting.requestId}
-              className="self-stretch flex-1 text-stone-400 text-xs font-medium hover:bg-stone-50 hover:text-stone-600 transition"
+              className={`self-stretch flex-1 text-xs font-medium transition ${
+                confirmingCancel === state.meeting.requestId
+                  ? "text-stone-700 bg-stone-100 font-semibold"
+                  : "text-stone-400 hover:bg-stone-50 hover:text-stone-600"
+              }`}
             >
-              Cancel
+              {confirmingCancel === state.meeting.requestId ? "Sure?" : "Cancel"}
             </button>
           </div>
         </div>
