@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState, useTransition } from "react";
+import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { formatSlotTime, formatSlotDay } from "@/lib/format";
 
@@ -51,11 +51,8 @@ export default function CalendarView({
     )
     .sort(([a], [b]) => a.localeCompare(b));
 
-  useEffect(() => {
-    if (showPendingModal && incomingRequests.length === 0) {
-      setShowPendingModal(false);
-    }
-  }, [showPendingModal, incomingRequests.length]);
+  // Derive modal visibility — auto-hides when the list empties without needing a useEffect
+  const modalOpen = showPendingModal && incomingRequests.length > 0;
 
   const days = Object.keys(groups).sort();
 
@@ -412,7 +409,7 @@ export default function CalendarView({
       </div>
 
       {/* Pending requests modal */}
-      {showPendingModal && (
+      {modalOpen && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 animate-backdrop"
           onClick={() => setShowPendingModal(false)}
