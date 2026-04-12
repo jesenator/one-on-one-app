@@ -42,7 +42,7 @@ export default async function Home() {
         <h1 className="text-2xl font-bold mb-2 text-stone-900">EA Retreat 1:1s</h1>
         <p className="text-sm text-stone-500 leading-relaxed">
           {upcoming.length > 0
-            ? "Join your retreat to start scheduling 1:1s."
+            ? "Enter your retreat to start scheduling 1:1s."
             : "Use the link shared by your retreat organizer to get started."}
         </p>
         {upcoming.length > 0 && (
