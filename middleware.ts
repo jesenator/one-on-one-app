@@ -2,8 +2,8 @@ import { NextResponse, type NextRequest } from "next/server";
 import { getIronSession } from "iron-session";
 import { sessionOptions, type SessionData } from "@/lib/session";
 
-const PROTECTED = ["/schedule", "/attendees", "/profile", "/admin", "/requests"];
-const NEEDS_USER_ONLY = ["/no-retreat"];
+const PROTECTED = ["/schedule", "/attendees", "/profile", "/requests"];
+const NEEDS_USER_ONLY = ["/no-retreat", "/admin"];
 
 export async function middleware(req: NextRequest) {
   const res = NextResponse.next();

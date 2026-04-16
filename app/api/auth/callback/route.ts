@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { consumeMagicLink } from "@/lib/auth";
 import { getSession } from "@/lib/session";
-import { getRetreat } from "@/lib/config";
 import { prisma } from "@/lib/prisma";
 
 export async function GET(req: Request) {
@@ -20,25 +19,24 @@ export async function GET(req: Request) {
   session.name = user.name;
 
   const retreatId = url.searchParams.get("retreat");
-  if (retreatId && getRetreat(retreatId)?.active) {
-    await prisma.retreatAttendance.upsert({
-      where: { userId_retreatId: { userId: user.id, retreatId } },
-      update: {},
-      create: { userId: user.id, retreatId },
-    });
-    session.retreatId = retreatId;
-    await session.save();
-    return NextResponse.redirect(new URL("/schedule", url));
+  if (retreatId) {
+    const retreat = await prisma.retreat.findUnique({ where: { id: retreatId } });
+    if (retreat?.active) {
+      await prisma.retreatAttendance.upsert({
+        where: { userId_retreatId: { userId: user.id, retreatId } },
+        update: {},
+        create: { userId: user.id, retreatId },
+      });
+      session.retreatId = retreatId;
+      await session.save();
+      return NextResponse.redirect(new URL("/schedule", url));
+    }
   }
 
-  // No retreat in the magic link (common after a logout → plain /login flow).
-  // Restore the user's most recent active retreat so they don't get dumped
-  // onto the "ask your organizer for a link" homepage.
-  const attendances = await prisma.retreatAttendance.findMany({
-    where: { userId: user.id },
+  const recent = await prisma.retreatAttendance.findFirst({
+    where: { userId: user.id, retreat: { active: true } },
     orderBy: { createdAt: "desc" },
   });
-  const recent = attendances.find((a) => getRetreat(a.retreatId)?.active);
   if (recent) {
     session.retreatId = recent.retreatId;
     await session.save();

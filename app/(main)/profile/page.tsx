@@ -1,14 +1,13 @@
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
-import { isAdminEmail, getRetreat } from "@/lib/config";
+import { isSuperAdmin, isRetreatAdmin } from "@/lib/config";
 import DeleteButton from "./DeleteButton";
 
 async function deleteAccount() {
   "use server";
   const session = await getSession();
   if (!session.userId) redirect("/login");
-  // Cancel all active meetings so the other party gets notified
   await prisma.meetingRequest.updateMany({
     where: {
       OR: [{ fromUserId: session.userId }, { toUserId: session.userId }],
@@ -16,7 +15,6 @@ async function deleteAccount() {
     },
     data: { status: "cancelled" },
   });
-  // Cascade deletes availability, attendance, and meeting requests
   await prisma.user.delete({ where: { id: session.userId } });
   session.destroy();
   redirect("/login");
@@ -48,19 +46,16 @@ async function updateName(formData: FormData) {
   redirect("/profile");
 }
 
-
 export default async function ProfilePage() {
   const s = await getSession();
   if (!s.userId) redirect("/login");
-  const admin = isAdminEmail(s.email || "");
+  const admin = await isSuperAdmin(s.userId) || await isRetreatAdmin(s.userId, s.retreatId || "");
 
-  const attendances = await prisma.retreatAttendance.findMany({
-    where: { userId: s.userId },
+  const retreats = await prisma.retreatAttendance.findMany({
+    where: { userId: s.userId, retreat: { active: true } },
     orderBy: { createdAt: "desc" },
+    include: { retreat: true },
   });
-  const retreats = attendances
-    .map((a) => ({ ...a, config: getRetreat(a.retreatId) }))
-    .filter((a) => a.config?.active);
 
   return (
     <div className="space-y-5 max-w-lg">
@@ -102,7 +97,7 @@ export default async function ProfilePage() {
                     key={a.retreatId}
                     className="flex items-center justify-between rounded-md border border-accent-200 bg-accent-50/40 px-4 py-3 text-sm font-medium text-accent-700"
                   >
-                    <span>{a.config!.name}</span>
+                    <span>{a.retreat.name}</span>
                     <span className="text-xs text-accent-500">Current</span>
                   </div>
                 );
@@ -114,7 +109,7 @@ export default async function ProfilePage() {
                     type="submit"
                     className="w-full flex items-center justify-between rounded-md border border-stone-200 bg-stone-50/60 px-4 py-3 text-sm font-medium text-stone-700 hover:border-accent-300 hover:bg-accent-50 hover:text-accent-700 transition"
                   >
-                    <span>{a.config!.name}</span>
+                    <span>{a.retreat.name}</span>
                     <span className="text-xs text-stone-400">Switch</span>
                   </button>
                 </form>
@@ -126,7 +121,7 @@ export default async function ProfilePage() {
 
       {admin && (
         <a
-          href="/admin"
+          href={`/admin/${s.retreatId}`}
           className="group flex items-center justify-between overflow-hidden rounded-md border border-stone-200 bg-white shadow-sm p-5 hover:border-accent-200 hover:bg-accent-50/30 transition"
         >
           <div className="flex items-center gap-3">

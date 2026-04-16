@@ -1,6 +1,5 @@
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/session";
-import { getRetreat } from "@/lib/config";
 import { prisma } from "@/lib/prisma";
 
 export default async function Home() {
@@ -9,13 +8,12 @@ export default async function Home() {
 
   if (s.retreatId) redirect("/schedule");
 
-  const attendances = await prisma.retreatAttendance.findMany({
-    where: { userId: s.userId },
+  const attendance = await prisma.retreatAttendance.findFirst({
+    where: { userId: s.userId, retreat: { active: true } },
     orderBy: { createdAt: "desc" },
   });
-  const recent = attendances.find((a) => getRetreat(a.retreatId)?.active);
-  if (recent) {
-    s.retreatId = recent.retreatId;
+  if (attendance) {
+    s.retreatId = attendance.retreatId;
     await s.save();
     redirect("/schedule");
   }

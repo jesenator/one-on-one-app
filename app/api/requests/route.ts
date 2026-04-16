@@ -23,7 +23,7 @@ export async function POST(req: Request) {
   // pretending to be UTC (see lib/config.ts generateSlots). Compare against
   // the same convention, not real UTC now, or west-coast users booking later
   // today get rejected because their local-hour < current UTC-hour.
-  const retreat = getRetreat(s.retreatId);
+  const retreat = await getRetreat(s.retreatId);
   if (!retreat)
     return NextResponse.json({ error: "retreat not found" }, { status: 400 });
 

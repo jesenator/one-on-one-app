@@ -21,13 +21,13 @@ export async function GET(
     return new Response("not found", { status: 404 });
   if (m.fromUserId !== s.userId && m.toUserId !== s.userId)
     return new Response("forbidden", { status: 403 });
-  const retreat = getRetreat(m.retreatId);
+  const retreat = await getRetreat(m.retreatId);
   const other = m.fromUserId === s.userId ? m.to : m.from;
   const ics = meetingsToIcs([
     {
       id: m.id,
       slotStart: m.slotStart,
-      durationMinutes: retreat?.slots.granularityMinutes ?? 30,
+      durationMinutes: retreat?.granularityMinutes ?? 30,
       withName: other.name,
       withEmail: other.email,
       retreatName: retreat?.name ?? "Retreat",

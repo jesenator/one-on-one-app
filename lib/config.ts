@@ -1,60 +1,34 @@
-import retreatsJson from "@/config/retreats.json";
+import { prisma } from "./prisma";
+import type { Retreat } from "@prisma/client";
 
-export type RetreatConfig = {
-  id: string;
-  name: string;
-  timezone: string;
-  active: boolean;
-  slots: {
-    start: string; // local "YYYY-MM-DDTHH:mm"
-    end: string;
-    dayStart: string; // "HH:mm"
-    dayEnd: string; // "HH:mm"
-    granularityMinutes: number;
-  };
-  highlightedSlots?: string[];
-};
+export type RetreatConfig = Retreat;
 
-type ConfigFile = {
-  retreats: RetreatConfig[];
-  adminEmails: string[];
-};
-
-const config = retreatsJson as ConfigFile;
-
-export function getActiveRetreats(): RetreatConfig[] {
-  return config.retreats.filter((r) => r.active);
+export async function getActiveRetreats(): Promise<RetreatConfig[]> {
+  return prisma.retreat.findMany({ where: { active: true }, orderBy: { createdAt: "asc" } });
 }
 
-export function getRetreat(id: string): RetreatConfig | undefined {
-  return config.retreats.find((r) => r.id === id);
+export async function getRetreat(id: string): Promise<RetreatConfig | null> {
+  return prisma.retreat.findUnique({ where: { id } });
 }
 
-export function isAdminEmail(email: string): boolean {
-  return config.adminEmails
-    .map((e) => e.toLowerCase())
-    .includes(email.toLowerCase());
+export async function isSuperAdmin(userId: string): Promise<boolean> {
+  const user = await prisma.user.findUnique({ where: { id: userId }, select: { superAdmin: true } });
+  return user?.superAdmin ?? false;
 }
 
-export function getAdminEmails(): string[] {
-  return config.adminEmails;
+export async function isRetreatAdmin(userId: string, retreatId: string): Promise<boolean> {
+  const [user, ra] = await Promise.all([
+    prisma.user.findUnique({ where: { id: userId }, select: { superAdmin: true } }),
+    prisma.retreatAdmin.findUnique({ where: { userId_retreatId: { userId, retreatId } } }),
+  ]);
+  return (user?.superAdmin ?? false) || !!ra;
 }
 
-/**
- * Generate the half-hour slot grid for a retreat.
- * Times are returned as ISO strings in UTC, but represent the wall-clock time
- * in the retreat's timezone.
- *
- * Note: this is a simple implementation that treats the local times as if
- * they were UTC for storage. For the EA retreat single-timezone case this
- * is fine — the UI always renders in retreat tz.
- */
 export function generateSlots(retreat: RetreatConfig): Date[] {
-  const { start, end, dayStart, dayEnd, granularityMinutes } = retreat.slots;
-  const startDate = new Date(start + ":00Z");
-  const endDate = new Date(end + ":00Z");
-  const [dsH, dsM] = dayStart.split(":").map(Number);
-  const [deH, deM] = dayEnd.split(":").map(Number);
+  const startDate = new Date(retreat.slotsStart + ":00Z");
+  const endDate = new Date(retreat.slotsEnd + ":00Z");
+  const [dsH, dsM] = retreat.dayStart.split(":").map(Number);
+  const [deH, deM] = retreat.dayEnd.split(":").map(Number);
 
   const slots: Date[] = [];
   const cursor = new Date(startDate);
@@ -67,15 +41,11 @@ export function generateSlots(retreat: RetreatConfig): Date[] {
     if (minutesOfDay >= dayStartMin && minutesOfDay < dayEndMin) {
       slots.push(new Date(cursor));
     }
-    cursor.setUTCMinutes(cursor.getUTCMinutes() + granularityMinutes);
+    cursor.setUTCMinutes(cursor.getUTCMinutes() + retreat.granularityMinutes);
   }
   return slots;
 }
 
-/**
- * Current wall-clock time in the retreat's timezone, returned as a fake-UTC
- * Date (same convention as generateSlots).
- */
 export function nowInRetreatTz(retreat: RetreatConfig): Date {
   const parts = new Intl.DateTimeFormat("en-US", {
     timeZone: retreat.timezone,
@@ -89,7 +59,6 @@ export function nowInRetreatTz(retreat: RetreatConfig): Date {
   );
 }
 
-/** Group slots by YYYY-MM-DD for column rendering. */
 export function groupSlotsByDay(slots: Date[]): Record<string, Date[]> {
   const groups: Record<string, Date[]> = {};
   for (const s of slots) {

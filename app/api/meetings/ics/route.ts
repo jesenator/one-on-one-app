@@ -6,7 +6,7 @@ import { meetingsToIcs } from "@/lib/ics";
 export async function GET() {
   const s = await getSession();
   if (!s.userId || !s.retreatId) return new Response("unauth", { status: 401 });
-  const retreat = getRetreat(s.retreatId);
+  const retreat = await getRetreat(s.retreatId);
   const meetings = await prisma.meetingRequest.findMany({
     where: {
       retreatId: s.retreatId,
@@ -24,7 +24,7 @@ export async function GET() {
       return {
         id: m.id,
         slotStart: m.slotStart,
-        durationMinutes: retreat?.slots.granularityMinutes ?? 30,
+        durationMinutes: retreat?.granularityMinutes ?? 30,
         withName: other.name,
         withEmail: other.email,
         retreatName: retreat?.name ?? "Retreat",

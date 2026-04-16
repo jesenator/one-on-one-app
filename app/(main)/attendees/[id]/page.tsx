@@ -23,7 +23,7 @@ export default async function AttendeeProfile({
   });
   if (!member) notFound();
 
-  const retreat = getRetreat(s.retreatId)!;
+  const retreat = (await getRetreat(s.retreatId))!;
   const slots = generateSlots(retreat);
   const groups = groupSlotsByDay(slots);
 

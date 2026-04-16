@@ -8,15 +8,17 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  name      String
-  createdAt DateTime @default(now())
+  id         String   @id @default(cuid())
+  email      String   @unique
+  name       String
+  superAdmin Boolean  @default(false)
+  createdAt  DateTime @default(now())
 
   attendances      RetreatAttendance[]
   availability     Availability[]
   requestsSent     MeetingRequest[]    @relation("from")
   requestsReceived MeetingRequest[]    @relation("to")
+  retreatAdmins    RetreatAdmin[]
 }
 
 model MagicLinkToken {
@@ -31,13 +33,42 @@ model MagicLinkToken {
   @@index([email])
 }
 
+model Retreat {
+  id                 String   @id // slug like "west-coast-ea-2026"
+  name               String
+  timezone           String
+  active             Boolean  @default(true)
+  slotsStart         String   // "2026-04-15T08:00" (fake-UTC wall-clock)
+  slotsEnd           String
+  dayStart           String   @default("08:00")
+  dayEnd             String   @default("22:00")
+  granularityMinutes Int      @default(30)
+  highlightedSlots   String[]
+  createdAt          DateTime @default(now())
+
+  attendances RetreatAttendance[]
+  admins      RetreatAdmin[]
+}
+
+model RetreatAdmin {
+  id        String @id @default(cuid())
+  userId    String
+  retreatId String
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  retreat Retreat @relation(fields: [retreatId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, retreatId])
+}
+
 model RetreatAttendance {
   id        String   @id @default(cuid())
   userId    String
   retreatId String
   createdAt DateTime @default(now())
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  retreat Retreat @relation(fields: [retreatId], references: [id], onDelete: Cascade)
 
   @@unique([userId, retreatId])
   @@index([retreatId])

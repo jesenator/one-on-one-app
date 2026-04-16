@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/session";
-import { getRetreat, isAdminEmail } from "@/lib/config";
+import { getRetreat, isSuperAdmin, isRetreatAdmin } from "@/lib/config";
 import AppNav from "./AppNav";
 
 export default async function AppLayout({
@@ -12,8 +12,8 @@ export default async function AppLayout({
   const session = await getSession();
   if (!session.userId) redirect("/login");
   if (!session.retreatId) redirect("/no-retreat");
-  const retreat = getRetreat(session.retreatId);
-  const admin = isAdminEmail(session.email || "");
+  const retreat = await getRetreat(session.retreatId);
+  const admin = await isSuperAdmin(session.userId) || await isRetreatAdmin(session.userId, session.retreatId);
 
   return (
     <div className="min-h-screen bg-stone-50 text-stone-900">
@@ -29,12 +29,12 @@ export default async function AppLayout({
                 </svg>
               </div>
               <div className="min-w-0">
-                <div className="text-sm font-semibold text-stone-900 group-hover:text-accent-500 transition truncate">1:1 Scheduler</div>
+                <div className="text-sm font-semibold text-stone-900 group-hover:text-accent-500 transition truncate">Pairwise</div>
                 <div className="text-[11px] text-stone-400 leading-none truncate">{retreat?.name}</div>
               </div>
             </Link>
             <div className="shrink-0">
-              <AppNav admin={admin} />
+              <AppNav admin={admin} adminHref={`/admin/${session.retreatId}`} />
             </div>
           </div>
         </div>

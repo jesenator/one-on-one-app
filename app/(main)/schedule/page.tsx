@@ -11,7 +11,7 @@ import CalendarView from "./CalendarView";
 export default async function SchedulePage() {
   const s = await getSession();
   if (!s.userId || !s.retreatId) redirect("/login");
-  const retreat = getRetreat(s.retreatId)!;
+  const retreat = (await getRetreat(s.retreatId))!;
   const slots = generateSlots(retreat);
   const groups = groupSlotsByDay(slots);
   await ensureDefaultAvailability(s.userId, s.retreatId, slots);

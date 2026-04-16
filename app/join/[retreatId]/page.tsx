@@ -24,7 +24,7 @@ export default async function RetreatJoinPage({
   params: Promise<{ retreatId: string }>;
 }) {
   const { retreatId } = await params;
-  const retreat = getRetreat(retreatId);
+  const retreat = await getRetreat(retreatId);
   if (!retreat || !retreat.active) notFound();
 
   const session = await getSession();

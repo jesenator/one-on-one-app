@@ -32,7 +32,7 @@ const TABS = [
   },
 ];
 
-export default function AppNav({ admin }: { admin: boolean }) {
+export default function AppNav({ admin, adminHref = "/admin" }: { admin: boolean; adminHref?: string }) {
   const path = usePathname();
   return (
     <nav className="flex gap-1 text-sm">
@@ -55,7 +55,7 @@ export default function AppNav({ admin }: { admin: boolean }) {
       })}
       {admin && (
         <Link
-          href="/admin"
+          href={adminHref}
           className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 font-medium transition ${
             path.startsWith("/admin")
               ? "bg-accent-50 text-accent-600"
