@@ -51,13 +51,13 @@ export default async function RetreatJoinPage({
           </svg>
         </div>
         <h1 className="text-2xl font-bold text-stone-900 mb-2">{retreat.name}</h1>
-        <p className="text-sm text-stone-400 mb-6">Enter this retreat to start scheduling 1:1s</p>
+        <p className="text-sm text-stone-400 mb-6">Join this retreat to start scheduling 1:1s</p>
         <form action={action}>
           <button
             type="submit"
             className="px-8 py-3 text-sm font-semibold bg-accent-500 text-white rounded-md hover:bg-accent-600 transition"
           >
-            Enter {retreat.name}
+            Join {retreat.name}
           </button>
         </form>
       </div>
