@@ -50,9 +50,9 @@ export async function sendMagicLinkEmail(email: string, link: string) {
     await sgMail.send({
       to: email,
       from,
-      subject: "Your EA Retreat 1:1 login link",
+      subject: "Your Pairwise login link",
       text: `Click to log in: ${link}\n\nThis link expires in 30 minutes.`,
-      html: `<p>Click to log in to EA Retreat 1:1s:</p><p><a href="${link}">${link}</a></p><p>This link expires in 30 minutes.</p>`,
+      html: `<p>Click to log in to Pairwise:</p><p><a href="${link}">${link}</a></p><p>This link expires in 30 minutes.</p>`,
     });
     console.log("[sendgrid] email sent to", email);
   } catch (err: unknown) {

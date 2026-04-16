@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
-import { isAdminEmail } from "@/lib/config";
+import { isAdminEmail, getRetreat } from "@/lib/config";
 import DeleteButton from "./DeleteButton";
 
 async function deleteAccount() {
@@ -22,6 +22,19 @@ async function deleteAccount() {
   redirect("/login");
 }
 
+async function switchRetreat(retreatId: string) {
+  "use server";
+  const session = await getSession();
+  if (!session.userId) redirect("/login");
+  const attendance = await prisma.retreatAttendance.findUnique({
+    where: { userId_retreatId: { userId: session.userId, retreatId } },
+  });
+  if (!attendance) redirect("/profile");
+  session.retreatId = retreatId;
+  await session.save();
+  redirect("/schedule");
+}
+
 async function updateName(formData: FormData) {
   "use server";
   const session = await getSession();
@@ -40,6 +53,15 @@ export default async function ProfilePage() {
   const s = await getSession();
   if (!s.userId) redirect("/login");
   const admin = isAdminEmail(s.email || "");
+
+  const attendances = await prisma.retreatAttendance.findMany({
+    where: { userId: s.userId },
+    orderBy: { createdAt: "desc" },
+  });
+  const retreats = attendances
+    .map((a) => ({ ...a, config: getRetreat(a.retreatId) }))
+    .filter((a) => a.config?.active);
+
   return (
     <div className="space-y-5 max-w-lg">
       <div className="mb-6">
@@ -67,6 +89,40 @@ export default async function ProfilePage() {
           Save changes
         </button>
       </form>
+
+      {retreats.length > 1 && (
+        <div className="overflow-hidden rounded-md border border-stone-200 bg-white shadow-sm p-6">
+          <h2 className="text-sm font-semibold text-stone-700 mb-3">Your retreats</h2>
+          <div className="space-y-2">
+            {retreats.map((a) => {
+              const isCurrent = a.retreatId === s.retreatId;
+              if (isCurrent) {
+                return (
+                  <div
+                    key={a.retreatId}
+                    className="flex items-center justify-between rounded-md border border-accent-200 bg-accent-50/40 px-4 py-3 text-sm font-medium text-accent-700"
+                  >
+                    <span>{a.config!.name}</span>
+                    <span className="text-xs text-accent-500">Current</span>
+                  </div>
+                );
+              }
+              const action = switchRetreat.bind(null, a.retreatId);
+              return (
+                <form key={a.retreatId} action={action}>
+                  <button
+                    type="submit"
+                    className="w-full flex items-center justify-between rounded-md border border-stone-200 bg-stone-50/60 px-4 py-3 text-sm font-medium text-stone-700 hover:border-accent-300 hover:bg-accent-50 hover:text-accent-700 transition"
+                  >
+                    <span>{a.config!.name}</span>
+                    <span className="text-xs text-stone-400">Switch</span>
+                  </button>
+                </form>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {admin && (
         <a

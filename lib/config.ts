@@ -3,7 +3,6 @@ import retreatsJson from "@/config/retreats.json";
 export type RetreatConfig = {
   id: string;
   name: string;
-  joinPath?: string;
   timezone: string;
   active: boolean;
   slots: {

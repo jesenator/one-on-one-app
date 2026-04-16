@@ -46,5 +46,5 @@ export async function GET(req: Request) {
   }
 
   await session.save();
-  return NextResponse.redirect(new URL("/", url));
+  return NextResponse.redirect(new URL("/no-retreat", url));
 }

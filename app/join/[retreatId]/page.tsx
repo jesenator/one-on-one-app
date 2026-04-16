@@ -2,8 +2,9 @@ import { redirect, notFound } from "next/navigation";
 import { getSession } from "@/lib/session";
 import { getRetreat } from "@/lib/config";
 import { prisma } from "@/lib/prisma";
+import AutoSubmit from "./AutoSubmit";
 
-async function joinRetreat(retreatId: string) {
+async function joinOrSwitch(retreatId: string) {
   "use server";
   const session = await getSession();
   if (!session.userId) redirect(`/login?retreat=${retreatId}`);
@@ -31,7 +32,15 @@ export default async function RetreatJoinPage({
     redirect(`/login?retreat=${retreatId}`);
   }
 
-  const join = joinRetreat.bind(null, retreatId);
+  const existing = await prisma.retreatAttendance.findUnique({
+    where: { userId_retreatId: { userId: session.userId, retreatId } },
+  });
+
+  const action = joinOrSwitch.bind(null, retreatId);
+
+  if (existing) {
+    return <AutoSubmit action={action} />;
+  }
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-stone-50">
@@ -43,7 +52,7 @@ export default async function RetreatJoinPage({
         </div>
         <h1 className="text-2xl font-bold text-stone-900 mb-2">{retreat.name}</h1>
         <p className="text-sm text-stone-400 mb-6">Enter this retreat to start scheduling 1:1s</p>
-        <form action={join}>
+        <form action={action}>
           <button
             type="submit"
             className="px-8 py-3 text-sm font-semibold bg-accent-500 text-white rounded-md hover:bg-accent-600 transition"
