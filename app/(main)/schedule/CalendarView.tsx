@@ -2,6 +2,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { formatSlotTime, formatSlotDay } from "@/lib/format";
+import SlotGrid from "../SlotGrid";
 
 type SlotMeeting = {
   requestId: string;
@@ -39,7 +40,6 @@ export default function CalendarView({
   );
   const [meetings, setMeetings] =
     useState<Record<string, SlotMeeting>>(initialSlotMeetings);
-  const highlighted = new Set(highlightedSlots);
   const nowMs = new Date(now).getTime();
   const [, startTransition] = useTransition();
   const [busy, setBusy] = useState<string | null>(null);
@@ -52,20 +52,14 @@ export default function CalendarView({
     )
     .sort(([a], [b]) => a.localeCompare(b));
 
-  // Derive modal visibility — auto-hides when the list empties without needing a useEffect
   const modalOpen = showPendingModal && incomingRequests.length > 0;
 
-  const days = Object.keys(groups).sort();
-
-  const firstNonPastDay =
-    days.find((d) => {
-      const slots = groups[d];
-      return slots.some((iso) => new Date(iso).getTime() >= nowMs);
-    }) ?? days[0];
-  const [activeDay, setActiveDay] = useState(firstNonPastDay);
+  const bufferMs = 30 * 60 * 1000;
 
   function classify(iso: string): SlotState {
-    const isPast = new Date(iso).getTime() < nowMs;
+    const slotMs = new Date(iso).getTime();
+    const isPast = slotMs < nowMs;
+    const tooSoon = slotMs < nowMs + bufferMs;
     const m = meetings[iso];
     if (m) {
       if (m.type === "confirmed")
@@ -75,6 +69,7 @@ export default function CalendarView({
       return { kind: "outgoing", meeting: m, isPast };
     }
     if (isPast) return { kind: "past" };
+    if (tooSoon) return { kind: "blocked" };
     if (available.has(iso)) return { kind: "available" };
     return { kind: "blocked" };
   }
@@ -121,50 +116,31 @@ export default function CalendarView({
     startTransition(() => router.refresh());
   }
 
-  function renderSlot(iso: string) {
+  function renderSlot(iso: string, { isHighlighted }: { isHighlighted: boolean; isPast: boolean }) {
     const state = classify(iso);
-    const isHighlighted = highlighted.has(iso);
     const time = formatSlotTime(new Date(iso));
 
     const base =
       "slot-card flex items-center gap-2 pl-3 pr-0 py-0 rounded-md border text-sm overflow-hidden min-h-[36px]";
-    const highlightCls = isHighlighted
+    const hlCls = isHighlighted
       ? "ring-2 ring-amber-400/60 border-amber-300 bg-amber-50/40"
       : "";
 
     if (state.kind === "past") {
       return (
-        <div
-          key={iso}
-          className={`${base} opacity-60 border-stone-100 bg-stone-50 ${highlightCls}`}
-        >
-          <span className="text-xs text-stone-400 w-16 shrink-0 font-medium">
-            {time}
-          </span>
+        <div key={iso} className={`${base} opacity-60 border-stone-100 bg-stone-50 ${hlCls}`}>
+          <span className="text-xs text-stone-400 w-16 shrink-0 font-medium">{time}</span>
         </div>
       );
     }
 
-    // Past pending requests (incoming/outgoing that never resolved) — show as "missed"
-    if (
-      (state.kind === "incoming" || state.kind === "outgoing") &&
-      state.isPast
-    ) {
+    if ((state.kind === "incoming" || state.kind === "outgoing") && state.isPast) {
       return (
-        <div
-          key={iso}
-          className={`${base} border-stone-200 bg-stone-50/60 opacity-90 ${highlightCls}`}
-        >
-          <span className="text-xs text-stone-400 w-16 shrink-0 font-medium">
-            {time}
-          </span>
+        <div key={iso} className={`${base} border-stone-200 bg-stone-50/60 opacity-90 ${hlCls}`}>
+          <span className="text-xs text-stone-400 w-16 shrink-0 font-medium">{time}</span>
           <div className="w-2 h-2 rounded-full bg-stone-300 shrink-0" />
-          <span className="text-sm text-stone-500 truncate flex-1">
-            {state.meeting.otherPersonName}
-          </span>
-          <span className="text-[11px] text-stone-400 shrink-0 italic pr-3">
-            missed
-          </span>
+          <span className="text-sm text-stone-500 truncate flex-1">{state.meeting.otherPersonName}</span>
+          <span className="text-[11px] text-stone-400 shrink-0 italic pr-3">missed</span>
         </div>
       );
     }
@@ -172,17 +148,10 @@ export default function CalendarView({
     if (state.kind === "confirmed") {
       const pastCls = state.isPast ? "opacity-50" : "";
       return (
-        <div
-          key={iso}
-          className={`${base} border-emerald-200 bg-emerald-50 ${highlightCls} ${pastCls}`}
-        >
-          <span className="text-xs text-emerald-700 w-16 shrink-0 font-semibold">
-            {time}
-          </span>
+        <div key={iso} className={`${base} border-emerald-200 bg-emerald-50 ${hlCls} ${pastCls}`}>
+          <span className="text-xs text-emerald-700 w-16 shrink-0 font-semibold">{time}</span>
           <div className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
-          <span className="text-sm font-medium text-emerald-900 truncate flex-1">
-            {state.meeting.otherPersonName}
-          </span>
+          <span className="text-sm font-medium text-emerald-900 truncate flex-1">{state.meeting.otherPersonName}</span>
           {!state.isPast && (
             <div className="flex self-stretch shrink-0 w-[72px] border-l border-emerald-200">
               <button
@@ -205,9 +174,7 @@ export default function CalendarView({
                     : "text-red-400 hover:bg-red-50 hover:text-red-600"
                 }`}
               >
-                {confirmingCancel === state.meeting.requestId
-                  ? "Sure?"
-                  : "Cancel"}
+                {confirmingCancel === state.meeting.requestId ? "Sure?" : "Cancel"}
               </button>
             </div>
           )}
@@ -217,17 +184,10 @@ export default function CalendarView({
 
     if (state.kind === "incoming") {
       return (
-        <div
-          key={iso}
-          className={`${base} border-amber-200 bg-amber-50 ${highlightCls}`}
-        >
-          <span className="text-xs text-amber-700 w-16 shrink-0 font-semibold">
-            {time}
-          </span>
+        <div key={iso} className={`${base} border-amber-200 bg-amber-50 ${hlCls}`}>
+          <span className="text-xs text-amber-700 w-16 shrink-0 font-semibold">{time}</span>
           <div className="w-2 h-2 rounded-full bg-amber-500 shrink-0 animate-pulse" />
-          <span className="text-sm font-medium text-amber-900 truncate flex-1">
-            {state.meeting.otherPersonName}
-          </span>
+          <span className="text-sm font-medium text-amber-900 truncate flex-1">{state.meeting.otherPersonName}</span>
           <div className="flex self-stretch shrink-0 w-[112px] border-l border-amber-200">
             <button
               onClick={() => act(state.meeting.requestId, "accept", iso)}
@@ -250,20 +210,11 @@ export default function CalendarView({
 
     if (state.kind === "outgoing") {
       return (
-        <div
-          key={iso}
-          className={`${base} border-stone-200 bg-white ${highlightCls}`}
-        >
-          <span className="text-xs text-stone-500 w-16 shrink-0 font-medium">
-            {time}
-          </span>
+        <div key={iso} className={`${base} border-stone-200 bg-white ${hlCls}`}>
+          <span className="text-xs text-stone-500 w-16 shrink-0 font-medium">{time}</span>
           <div className="w-2 h-2 rounded-full bg-stone-300 shrink-0" />
-          <span className="text-sm font-medium text-stone-600 truncate flex-1">
-            {state.meeting.otherPersonName}
-          </span>
-          <span className="text-[11px] text-stone-400 shrink-0 italic">
-            waiting
-          </span>
+          <span className="text-sm font-medium text-stone-600 truncate flex-1">{state.meeting.otherPersonName}</span>
+          <span className="text-[11px] text-stone-400 shrink-0 italic">waiting</span>
           <div className="flex self-stretch shrink-0 w-[72px] border-l border-stone-200">
             <button
               onClick={() => {
@@ -294,13 +245,8 @@ export default function CalendarView({
 
     if (state.kind === "available") {
       return (
-        <div
-          key={iso}
-          className={`${base} border-stone-200 bg-white hover:border-accent-200 hover:bg-accent-50 ${highlightCls}`}
-        >
-          <span className="text-xs text-stone-600 w-16 shrink-0 font-medium">
-            {time}
-          </span>
+        <div key={iso} className={`${base} border-stone-200 bg-white hover:border-accent-200 hover:bg-accent-50 ${hlCls}`}>
+          <span className="text-xs text-stone-600 w-16 shrink-0 font-medium">{time}</span>
           <button
             onClick={() => router.push(`/attendees?slot=${iso}`)}
             className="text-sm text-stone-500 truncate flex-1 text-left hover:text-accent-600 transition cursor-pointer font-medium"
@@ -319,15 +265,9 @@ export default function CalendarView({
       );
     }
 
-    // blocked
     return (
-      <div
-        key={iso}
-        className={`${base} border-stone-200 bg-stone-50 ${highlightCls}`}
-      >
-        <span className="text-xs text-stone-400 w-16 shrink-0 font-medium">
-          {time}
-        </span>
+      <div key={iso} className={`${base} border-stone-200 bg-stone-50 ${hlCls}`}>
+        <span className="text-xs text-stone-400 w-16 shrink-0 font-medium">{time}</span>
         <span className="text-sm text-stone-400 flex-1">Blocked</span>
         <div className="flex self-stretch shrink-0 w-[72px] border-l border-stone-200">
           <button
@@ -343,7 +283,6 @@ export default function CalendarView({
 
   return (
     <div>
-      {/* Pending requests banner */}
       {incomingRequests.length > 0 && (
         <button
           onClick={() => setShowPendingModal(true)}
@@ -364,7 +303,6 @@ export default function CalendarView({
         </button>
       )}
 
-      {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <div>
           <h1 className="text-2xl font-bold text-stone-900">Your Schedule</h1>
@@ -372,7 +310,6 @@ export default function CalendarView({
         </div>
       </div>
 
-      {/* Legend */}
       <div className="text-xs text-stone-400 flex flex-wrap gap-4 mb-5 pb-4 border-b border-stone-200/60">
         <span className="flex items-center gap-2">
           <span className="inline-block w-3 h-3 bg-emerald-500 rounded" />
@@ -394,48 +331,13 @@ export default function CalendarView({
         )}
       </div>
 
-      {/* Mobile: Day tabs */}
-      <div className="flex gap-1.5 mb-5 lg:hidden overflow-x-auto">
-        {days.map((day) => (
-          <button
-            key={day}
-            onClick={() => setActiveDay(day)}
-            className={[
-              "flex-1 py-2.5 rounded-md text-sm font-semibold transition border min-w-0",
-              activeDay === day
-                ? "bg-accent-500 text-white border-accent-500"
-                : "bg-white text-stone-500 border-stone-200 hover:bg-stone-50 hover:text-stone-700",
-            ].join(" ")}
-          >
-            {formatSlotDay(new Date(day))}
-          </button>
-        ))}
-      </div>
+      <SlotGrid
+        groups={groups}
+        now={now}
+        highlightedSlots={highlightedSlots}
+        renderSlot={renderSlot}
+      />
 
-      {/* Desktop: columns | Mobile: single day */}
-      <div
-        className="hidden lg:grid gap-5"
-        style={{ gridTemplateColumns: `repeat(${days.length}, 1fr)` }}
-      >
-        {days.map((day) => (
-          <div key={day}>
-            <h3 className="text-xs font-bold text-stone-500 uppercase tracking-wider mb-3 sticky top-0 bg-stone-50 py-1.5 z-10">
-              {formatSlotDay(new Date(day))}
-            </h3>
-            <div className="space-y-1.5">
-              {groups[day].map((iso) => renderSlot(iso))}
-            </div>
-          </div>
-        ))}
-      </div>
-
-      <div className="lg:hidden">
-        <div className="space-y-1.5">
-          {(groups[activeDay] ?? []).map((iso) => renderSlot(iso))}
-        </div>
-      </div>
-
-      {/* Pending requests modal */}
       {modalOpen && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 animate-backdrop"
@@ -462,14 +364,9 @@ export default function CalendarView({
             </div>
             <div className="overflow-y-auto flex-1 divide-y divide-stone-100">
               {incomingRequests.map(([iso, m]) => (
-                <div
-                  key={iso}
-                  className="px-5 py-3 flex items-center gap-3"
-                >
+                <div key={iso} className="px-5 py-3 flex items-center gap-3">
                   <div className="flex-1 min-w-0">
-                    <div className="text-sm font-semibold text-stone-900 truncate">
-                      {m.otherPersonName}
-                    </div>
+                    <div className="text-sm font-semibold text-stone-900 truncate">{m.otherPersonName}</div>
                     <div className="text-xs text-stone-500 mt-0.5">
                       {formatSlotDay(new Date(iso))} · {formatSlotTime(new Date(iso))}
                     </div>

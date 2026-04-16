@@ -97,6 +97,7 @@ export default async function AttendeeProfile({
         myBookedMeetings={myBookedMeetings}
         theirBooked={theirBooked.map((p) => p.slotStart.toISOString())}
         pending={pending.map((p) => p.slotStart.toISOString())}
+        highlightedSlots={retreat.highlightedSlots ?? []}
         now={nowInRetreatTz(retreat).toISOString()}
         preselectedSlot={preselectedSlot}
       />

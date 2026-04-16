@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { formatSlotTime, formatSlotDay } from "@/lib/format";
+import SlotGrid from "../../SlotGrid";
 
 type Props = {
   toUserId: string;
@@ -12,6 +13,7 @@ type Props = {
   myBookedMeetings: Record<string, string>;
   theirBooked: string[];
   pending: string[];
+  highlightedSlots?: string[];
   now: string;
   preselectedSlot?: string;
 };
@@ -27,6 +29,7 @@ export default function OverlapGrid({
   myBookedMeetings,
   theirBooked,
   pending,
+  highlightedSlots = [],
   now,
   preselectedSlot,
 }: Props) {
@@ -60,60 +63,48 @@ export default function OverlapGrid({
     router.refresh();
   }
 
+  const bufferMs = 30 * 60 * 1000;
+
   function classify(iso: string): SlotState | null {
-    const isPast = new Date(iso).getTime() < nowMs;
-    if (isPast) return null;
+    const slotMs = new Date(iso).getTime();
+    if (slotMs < nowMs) return null;
+    if (slotMs < nowMs + bufferMs) return "booked";
     if (myBookedSet.has(iso) || theirBookedSet.has(iso)) return "booked";
     if (pendingSet.has(iso)) return "pending";
     if (mineSet.has(iso) && theirsSet.has(iso)) return "available";
     return "none";
   }
 
-  const days = Object.keys(groups).sort();
+  function filterSlot(iso: string): boolean {
+    const state = classify(iso);
+    return state !== null && state !== "none";
+  }
 
-  // Classify all slots per day, filtering out past and "none" states
-  const daySlots = days.map((day) => {
-    const slots = groups[day]
-      .map((iso) => ({ iso, state: classify(iso) }))
-      .filter((s): s is { iso: string; state: SlotState } => s.state !== null && s.state !== "none");
-    return { day, slots };
-  });
-
-  const relevantDays = daySlots.filter((d) => d.slots.length > 0);
-
-  const firstRelevantDay = relevantDays[0]?.day ?? days[0];
-  const [activeDay, setActiveDay] = useState(firstRelevantDay);
-  const activeDaySlots = daySlots.find((d) => d.day === activeDay)?.slots ?? [];
-
-  const totalAvailable = relevantDays.reduce(
-    (n, d) => n + d.slots.filter((s) => s.state === "available").length,
-    0,
-  );
-  const totalPending = relevantDays.reduce(
-    (n, d) => n + d.slots.filter((s) => s.state === "pending").length,
-    0,
-  );
+  const allSlots = Object.values(groups).flat();
+  const totalAvailable = allSlots.filter((iso) => classify(iso) === "available").length;
+  const totalPending = allSlots.filter((iso) => classify(iso) === "pending").length;
 
   const base =
     "slot-card flex items-center gap-2 pl-3 pr-0 py-0 rounded-md border text-sm overflow-hidden min-h-[36px]";
 
-  function renderSlot(iso: string, state: SlotState) {
+  function renderSlot(iso: string, { isHighlighted }: { isHighlighted: boolean; isPast: boolean }) {
+    const state = classify(iso);
+    if (!state || state === "none") return null;
     const time = formatSlotTime(new Date(iso));
+    const hlCls = isHighlighted
+      ? "ring-2 ring-amber-400/60 border-amber-300 bg-amber-50/40"
+      : "";
 
     if (state === "available") {
       return (
         <div
           key={iso}
-          className={`${base} border-accent-200 bg-accent-50 hover:bg-accent-100 cursor-pointer transition`}
+          className={`${base} border-accent-200 bg-accent-50 hover:bg-accent-100 cursor-pointer transition ${hlCls}`}
           onClick={() => setConfirm(iso)}
         >
-          <span className="text-xs text-accent-700 w-16 shrink-0 font-semibold">
-            {time}
-          </span>
+          <span className="text-xs text-accent-700 w-16 shrink-0 font-semibold">{time}</span>
           <div className="w-2 h-2 rounded-full bg-accent-500 shrink-0" />
-          <span className="text-sm font-medium text-accent-700 truncate flex-1">
-            Both free
-          </span>
+          <span className="text-sm font-medium text-accent-700 truncate flex-1">Both free</span>
           <div className="flex self-stretch shrink-0 w-[72px] border-l border-accent-200">
             <button
               disabled={busy === iso}
@@ -128,43 +119,24 @@ export default function OverlapGrid({
 
     if (state === "pending") {
       return (
-        <div
-          key={iso}
-          className={`${base} border-amber-200 bg-amber-50`}
-        >
-          <span className="text-xs text-amber-700 w-16 shrink-0 font-semibold">
-            {time}
-          </span>
+        <div key={iso} className={`${base} border-amber-200 bg-amber-50 ${hlCls}`}>
+          <span className="text-xs text-amber-700 w-16 shrink-0 font-semibold">{time}</span>
           <div className="w-2 h-2 rounded-full bg-amber-500 shrink-0 animate-pulse" />
-          <span className="text-sm font-medium text-amber-800 truncate flex-1">
-            Requested
-          </span>
+          <span className="text-sm font-medium text-amber-800 truncate flex-1">Requested</span>
         </div>
       );
     }
 
-    if (state === "booked") {
-      return (
-        <div
-          key={iso}
-          className={`${base} border-stone-100 bg-stone-50 opacity-50`}
-        >
-          <span className="text-xs text-stone-400 w-16 shrink-0 font-medium">
-            {time}
-          </span>
-          <span className="text-sm text-stone-400 truncate flex-1">
-            Unavailable
-          </span>
-        </div>
-      );
-    }
-
-    return null;
+    return (
+      <div key={iso} className={`${base} border-stone-100 bg-stone-50 opacity-50 ${hlCls}`}>
+        <span className="text-xs text-stone-400 w-16 shrink-0 font-medium">{time}</span>
+        <span className="text-sm text-stone-400 truncate flex-1">Unavailable</span>
+      </div>
+    );
   }
 
   return (
     <div className="space-y-5">
-      {/* Legend */}
       <div className="text-xs text-stone-400 flex flex-wrap gap-4 pb-3 border-b border-stone-200/60">
         <span className="flex items-center gap-2">
           <span className="inline-block w-3 h-3 bg-accent-500 rounded" />
@@ -178,6 +150,12 @@ export default function OverlapGrid({
           <span className="inline-block w-3 h-3 bg-stone-300 rounded" />
           unavailable
         </span>
+        {highlightedSlots.length > 0 && (
+          <span className="flex items-center gap-2">
+            <span className="inline-block w-3 h-3 ring-2 ring-amber-400 bg-amber-50 rounded" />
+            designated 1:1 time
+          </span>
+        )}
       </div>
 
       {error && (
@@ -196,52 +174,14 @@ export default function OverlapGrid({
         </div>
       )}
 
-      {/* Mobile: Day tabs */}
-      <div className="flex gap-1.5 mb-5 lg:hidden overflow-x-auto">
-        {days.map((day) => (
-          <button
-            key={day}
-            onClick={() => setActiveDay(day)}
-            className={[
-              "flex-1 py-2.5 rounded-md text-sm font-semibold transition border min-w-0",
-              activeDay === day
-                ? "bg-accent-500 text-white border-accent-500"
-                : "bg-white text-stone-500 border-stone-200 hover:bg-stone-50 hover:text-stone-700",
-            ].join(" ")}
-          >
-            {formatSlotDay(new Date(day))}
-          </button>
-        ))}
-      </div>
-
-      {/* Desktop: columns | Mobile: single day */}
-      <div
-        className="hidden lg:grid gap-5"
-        style={{ gridTemplateColumns: `repeat(${days.length}, 1fr)` }}
-      >
-        {daySlots.map(({ day, slots }) => (
-          <div key={day}>
-            <h3 className="text-xs font-bold text-stone-500 uppercase tracking-wider mb-3 sticky top-0 bg-stone-50 py-1.5 z-10">
-              {formatSlotDay(new Date(day))}
-            </h3>
-            <div className="space-y-1.5">
-              {slots.length > 0
-                ? slots.map(({ iso, state }) => renderSlot(iso, state))
-                : <div className="text-xs text-stone-300 py-2">No overlap</div>
-              }
-            </div>
-          </div>
-        ))}
-      </div>
-
-      <div className="lg:hidden">
-        <div className="space-y-1.5">
-          {activeDaySlots.length > 0
-            ? activeDaySlots.map(({ iso, state }) => renderSlot(iso, state))
-            : <div className="text-xs text-stone-300 py-2">No overlap on this day</div>
-          }
-        </div>
-      </div>
+      <SlotGrid
+        groups={groups}
+        now={now}
+        highlightedSlots={highlightedSlots}
+        renderSlot={renderSlot}
+        filterSlot={filterSlot}
+        emptyDayMessage="No overlap"
+      />
 
       {confirm && (
         <div
@@ -261,14 +201,9 @@ export default function OverlapGrid({
             <h3 className="text-lg font-bold text-stone-900 mb-1">Request 1:1</h3>
             <p className="text-sm text-stone-500 mb-5">
               Meet with <span className="font-semibold text-stone-700">{toUserName}</span> on{" "}
-              <span className="font-semibold text-stone-700">
-                {formatSlotDay(new Date(confirm))}
-              </span>{" "}
+              <span className="font-semibold text-stone-700">{formatSlotDay(new Date(confirm))}</span>{" "}
               at{" "}
-              <span className="font-semibold text-stone-700">
-                {formatSlotTime(new Date(confirm))}
-              </span>
-              ?
+              <span className="font-semibold text-stone-700">{formatSlotTime(new Date(confirm))}</span>?
             </p>
             <div className="flex gap-2.5 justify-end">
               <button
