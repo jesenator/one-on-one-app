@@ -72,7 +72,7 @@ export default async function AttendeeProfile({
     <div>
       <a
         href="/attendees"
-        className="inline-flex items-center gap-1.5 text-xs text-stone-400 hover:text-accent-600 transition mb-4 font-medium"
+        className="inline-flex items-center gap-1.5 text-xs text-stone-400 hover:text-accent-600 mb-4 font-medium"
       >
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-3.5 h-3.5">
           <path fillRule="evenodd" d="M11.78 5.22a.75.75 0 0 1 0 1.06L8.06 10l3.72 3.72a.75.75 0 1 1-1.06 1.06l-4.25-4.25a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 0Z" clipRule="evenodd" />

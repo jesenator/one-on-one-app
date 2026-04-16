@@ -52,7 +52,7 @@ export default function SlotChipPicker({
                     type="button"
                     onClick={() => toggle(iso)}
                     className={[
-                      "px-2 py-0.5 rounded-full text-[11px] font-medium transition border",
+                      "px-2 py-0.5 rounded-full text-[11px] font-medium border",
                       on
                         ? "bg-amber-100 border-amber-300 text-amber-800"
                         : "bg-stone-50 border-stone-200 text-stone-400 hover:border-amber-200 hover:text-amber-700",

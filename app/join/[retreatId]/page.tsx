@@ -55,7 +55,7 @@ export default async function RetreatJoinPage({
         <form action={action}>
           <button
             type="submit"
-            className="px-8 py-3 text-sm font-semibold bg-accent-500 text-white rounded-md hover:bg-accent-600 transition"
+            className="px-8 py-3 text-sm font-semibold bg-accent-500 text-white rounded-md hover:bg-accent-600"
           >
             Join {retreat.name}
           </button>

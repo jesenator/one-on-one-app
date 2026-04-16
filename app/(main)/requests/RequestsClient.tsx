@@ -66,13 +66,13 @@ export default function RequestsClient({
             </div>
             <div className="flex gap-2 shrink-0">
               <button
-                className="px-3.5 py-1.5 bg-emerald-600 text-white rounded-md text-xs font-semibold hover:bg-emerald-700 transition"
+                className="px-3.5 py-1.5 bg-emerald-600 text-white rounded-md text-xs font-semibold hover:bg-emerald-700"
                 onClick={() => act(r.id, "accept")}
               >
                 Accept
               </button>
               <button
-                className="px-3 py-1.5 border border-stone-200 text-stone-500 rounded-md text-xs font-medium hover:bg-stone-50 transition"
+                className="px-3 py-1.5 border border-stone-200 text-stone-500 rounded-md text-xs font-medium hover:bg-stone-50"
                 onClick={() => act(r.id, "decline")}
               >
                 Decline
@@ -100,7 +100,7 @@ export default function RequestsClient({
               <div className="text-xs text-stone-400">{fmtTime(r.slotStart)}</div>
             </div>
             <button
-              className="px-3 py-1.5 border border-stone-200 text-stone-500 rounded-md text-xs font-medium hover:bg-stone-50 transition shrink-0"
+              className="px-3 py-1.5 border border-stone-200 text-stone-500 rounded-md text-xs font-medium hover:bg-stone-50 shrink-0"
               onClick={() => act(r.id, "cancel")}
             >
               Cancel
@@ -122,7 +122,7 @@ export default function RequestsClient({
           confirmed.length > 0 && (
             <a
               href="/api/meetings/ics"
-              className="text-xs px-3 py-1.5 bg-accent-500 text-white rounded-md font-semibold hover:bg-accent-600 transition inline-flex items-center gap-1.5"
+              className="text-xs px-3 py-1.5 bg-accent-500 text-white rounded-md font-semibold hover:bg-accent-600 inline-flex items-center gap-1.5"
             >
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-3.5 h-3.5">
                 <path d="M10.75 2.75a.75.75 0 0 0-1.5 0v8.614L6.295 8.235a.75.75 0 1 0-1.09 1.03l4.25 4.5a.75.75 0 0 0 1.09 0l4.25-4.5a.75.75 0 0 0-1.09-1.03l-2.955 3.129V2.75Z" />
@@ -147,7 +147,7 @@ export default function RequestsClient({
               <div className="flex gap-2 shrink-0">
                 <a
                   href={`/api/meetings/${r.id}/ics`}
-                  className="px-3 py-1.5 border border-stone-200 text-stone-500 rounded-md text-xs font-medium hover:bg-stone-50 transition inline-flex items-center gap-1"
+                  className="px-3 py-1.5 border border-stone-200 text-stone-500 rounded-md text-xs font-medium hover:bg-stone-50 inline-flex items-center gap-1"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-3 h-3">
                     <path d="M10.75 2.75a.75.75 0 0 0-1.5 0v8.614L6.295 8.235a.75.75 0 1 0-1.09 1.03l4.25 4.5a.75.75 0 0 0 1.09 0l4.25-4.5a.75.75 0 0 0-1.09-1.03l-2.955 3.129V2.75Z" />
@@ -156,7 +156,7 @@ export default function RequestsClient({
                   .ics
                 </a>
                 <button
-                  className="px-3 py-1.5 border border-red-200 text-red-500 rounded-md text-xs font-medium hover:bg-red-50 transition"
+                  className="px-3 py-1.5 border border-red-200 text-red-500 rounded-md text-xs font-medium hover:bg-red-50"
                   onClick={() => {
                     if (confirm("Cancel this 1:1?")) act(r.id, "cancel");
                   }}

@@ -29,7 +29,7 @@ export default async function AppLayout({
                 </svg>
               </div>
               <div className="min-w-0">
-                <div className="text-sm font-semibold text-stone-900 group-hover:text-accent-500 transition truncate">Pairwise</div>
+                <div className="text-sm font-semibold text-stone-900 group-hover:text-accent-500 truncate">Pairwise</div>
                 <div className="text-[11px] text-stone-400 leading-none truncate">{retreat?.name}</div>
               </div>
             </Link>
@@ -39,7 +39,7 @@ export default async function AppLayout({
           </div>
         </div>
       </header>
-      <main className="mx-auto max-w-5xl px-6 py-8 animate-fade-in">{children}</main>
+      <main className="mx-auto max-w-5xl px-6 py-8">{children}</main>
       <footer className="mt-auto py-4 text-center text-xs text-stone-400">
         Found a bug? Contact{" "}
         <a href="mailto:jessewgilbert@gmail.com" className="underline hover:text-stone-600">

@@ -59,7 +59,7 @@ export default function LoginForm() {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 autoComplete="name"
-                className="w-full border border-stone-200 rounded-md px-3.5 py-2.5 text-sm bg-stone-50/50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-accent-500/20 focus:border-accent-500 transition"
+                className="w-full border border-stone-200 rounded-md px-3.5 py-2.5 text-sm bg-stone-50/50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-accent-500/20 focus:border-accent-500"
               />
             </div>
             <div>
@@ -71,7 +71,7 @@ export default function LoginForm() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 autoComplete="email"
-                className="w-full border border-stone-200 rounded-md px-3.5 py-2.5 text-sm bg-stone-50/50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-accent-500/20 focus:border-accent-500 transition"
+                className="w-full border border-stone-200 rounded-md px-3.5 py-2.5 text-sm bg-stone-50/50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-accent-500/20 focus:border-accent-500"
               />
             </div>
             {error && (
@@ -82,7 +82,7 @@ export default function LoginForm() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-accent-500 text-white rounded-md py-2.5 text-sm font-semibold disabled:opacity-50 hover:bg-accent-600 transition"
+              className="w-full bg-accent-500 text-white rounded-md py-2.5 text-sm font-semibold disabled:opacity-50 hover:bg-accent-600"
             >
               {loading ? "Sending email..." : "Sign in"}
             </button>

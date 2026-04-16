@@ -121,7 +121,7 @@ export default function CalendarView({
     const time = formatSlotTime(new Date(iso));
 
     const base =
-      "slot-card flex items-center gap-2 pl-3 pr-0 py-0 rounded-md border text-sm overflow-hidden min-h-[36px]";
+      "flex items-center gap-2 pl-3 pr-0 py-0 rounded-md border text-sm overflow-hidden min-h-[36px]";
     const hlCls = isHighlighted
       ? "ring-2 ring-amber-400/60 border-amber-300 bg-amber-50/40"
       : "";
@@ -168,7 +168,7 @@ export default function CalendarView({
                     setConfirmingCancel(null);
                 }}
                 disabled={busy === state.meeting.requestId}
-                className={`self-stretch flex-1 text-xs font-medium transition ${
+                className={`self-stretch flex-1 text-xs font-medium ${
                   confirmingCancel === state.meeting.requestId
                     ? "text-red-600 bg-red-50 font-semibold"
                     : "text-red-400 hover:bg-red-50 hover:text-red-600"
@@ -186,20 +186,20 @@ export default function CalendarView({
       return (
         <div key={iso} className={`${base} border-amber-200 bg-amber-50 ${hlCls}`}>
           <span className="text-xs text-amber-700 w-16 shrink-0 font-semibold">{time}</span>
-          <div className="w-2 h-2 rounded-full bg-amber-500 shrink-0 animate-pulse" />
+          <div className="w-2 h-2 rounded-full bg-amber-500 shrink-0" />
           <span className="text-sm font-medium text-amber-900 truncate flex-1">{state.meeting.otherPersonName}</span>
           <div className="flex self-stretch shrink-0 w-[112px] border-l border-amber-200">
             <button
               onClick={() => act(state.meeting.requestId, "accept", iso)}
               disabled={busy === state.meeting.requestId}
-              className="self-stretch flex-1 text-emerald-600 text-xs font-semibold hover:bg-emerald-50 transition disabled:opacity-50"
+              className="self-stretch flex-1 text-emerald-600 text-xs font-semibold hover:bg-emerald-50 disabled:opacity-50"
             >
               Accept
             </button>
             <button
               onClick={() => act(state.meeting.requestId, "decline", iso)}
               disabled={busy === state.meeting.requestId}
-              className="self-stretch flex-1 border-l border-amber-200 text-stone-400 text-xs font-medium hover:bg-stone-50 hover:text-stone-600 transition disabled:opacity-50"
+              className="self-stretch flex-1 border-l border-amber-200 text-stone-400 text-xs font-medium hover:bg-stone-50 hover:text-stone-600 disabled:opacity-50"
             >
               Decline
             </button>
@@ -230,7 +230,7 @@ export default function CalendarView({
                   setConfirmingCancel(null);
               }}
               disabled={busy === state.meeting.requestId}
-              className={`self-stretch flex-1 text-xs font-medium transition ${
+              className={`self-stretch flex-1 text-xs font-medium ${
                 confirmingCancel === state.meeting.requestId
                   ? "text-stone-700 bg-stone-100 font-semibold"
                   : "text-stone-400 hover:bg-stone-50 hover:text-stone-600"
@@ -249,14 +249,14 @@ export default function CalendarView({
           <span className="text-xs text-stone-600 w-16 shrink-0 font-medium">{time}</span>
           <button
             onClick={() => router.push(`/attendees?slot=${iso}`)}
-            className="text-sm text-stone-500 truncate flex-1 text-left hover:text-accent-600 transition cursor-pointer font-medium"
+            className="text-sm text-stone-500 truncate flex-1 text-left hover:text-accent-600 cursor-pointer font-medium"
           >
             Available &rarr;
           </button>
           <div className="flex self-stretch shrink-0 w-[72px] border-l border-stone-200">
             <button
               onClick={() => toggleBlock(iso)}
-              className="self-stretch flex-1 text-stone-400 text-xs font-medium hover:bg-stone-100 hover:text-stone-600 transition"
+              className="self-stretch flex-1 text-stone-400 text-xs font-medium hover:bg-stone-100 hover:text-stone-600"
             >
               Block
             </button>
@@ -272,7 +272,7 @@ export default function CalendarView({
         <div className="flex self-stretch shrink-0 w-[72px] border-l border-stone-200">
           <button
             onClick={() => toggleBlock(iso)}
-            className="self-stretch flex-1 text-stone-500 text-xs font-medium hover:bg-stone-100 hover:text-stone-700 transition"
+            className="self-stretch flex-1 text-stone-500 text-xs font-medium hover:bg-stone-100 hover:text-stone-700"
           >
             Unblock
           </button>
@@ -286,18 +286,15 @@ export default function CalendarView({
       {incomingRequests.length > 0 && (
         <button
           onClick={() => setShowPendingModal(true)}
-          className="w-full mb-4 bg-red-50 border border-red-300 rounded-md px-4 py-3 flex items-center justify-between gap-3 hover:bg-red-100 transition group"
+          className="w-full mb-4 bg-red-50 border border-red-300 rounded-md px-4 py-3 flex items-center justify-between gap-3 hover:bg-red-100 group"
         >
           <div className="flex items-center gap-3 min-w-0">
-            <span className="relative flex h-2.5 w-2.5 shrink-0">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500"></span>
-            </span>
+            <span className="inline-flex rounded-full h-2.5 w-2.5 bg-red-500 shrink-0"></span>
             <span className="text-sm font-semibold text-red-800 truncate">
               You have {incomingRequests.length} pending 1:1 {incomingRequests.length === 1 ? "request" : "requests"}
             </span>
           </div>
-          <span className="text-xs text-red-700 font-semibold shrink-0 group-hover:translate-x-0.5 transition-transform">
+          <span className="text-xs text-red-700 font-semibold shrink-0">
             Review &rarr;
           </span>
         </button>
@@ -340,11 +337,11 @@ export default function CalendarView({
 
       {modalOpen && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 animate-backdrop"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40"
           onClick={() => setShowPendingModal(false)}
         >
           <div
-            className="bg-white rounded-lg shadow-xl max-w-md w-full max-h-[80vh] overflow-hidden flex flex-col animate-modal"
+            className="bg-white rounded-lg shadow-xl max-w-md w-full max-h-[80vh] overflow-hidden flex flex-col"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="px-5 py-4 border-b border-stone-200 flex items-center justify-between">
@@ -356,7 +353,7 @@ export default function CalendarView({
               </div>
               <button
                 onClick={() => setShowPendingModal(false)}
-                className="text-stone-400 hover:text-stone-700 text-2xl leading-none w-8 h-8 flex items-center justify-center rounded hover:bg-stone-100 transition"
+                className="text-stone-400 hover:text-stone-700 text-2xl leading-none w-8 h-8 flex items-center justify-center rounded hover:bg-stone-100"
                 aria-label="Close"
               >
                 &times;
@@ -375,14 +372,14 @@ export default function CalendarView({
                     <button
                       onClick={() => act(m.requestId, "accept", iso)}
                       disabled={busy === m.requestId}
-                      className="px-3 py-1.5 rounded-md border border-emerald-200 bg-emerald-50 text-emerald-700 text-xs font-semibold hover:bg-emerald-100 transition disabled:opacity-50"
+                      className="px-3 py-1.5 rounded-md border border-emerald-200 bg-emerald-50 text-emerald-700 text-xs font-semibold hover:bg-emerald-100 disabled:opacity-50"
                     >
                       Accept
                     </button>
                     <button
                       onClick={() => act(m.requestId, "decline", iso)}
                       disabled={busy === m.requestId}
-                      className="px-3 py-1.5 rounded-md border border-stone-200 bg-white text-stone-500 text-xs font-medium hover:bg-stone-50 hover:text-stone-700 transition disabled:opacity-50"
+                      className="px-3 py-1.5 rounded-md border border-stone-200 bg-white text-stone-500 text-xs font-medium hover:bg-stone-50 hover:text-stone-700 disabled:opacity-50"
                     >
                       Reject
                     </button>

@@ -119,7 +119,7 @@ export default function SlotGrid({
             key={day}
             onClick={() => setActiveDay(day)}
             className={[
-              "flex-1 py-2.5 rounded-md text-sm font-semibold transition border min-w-0",
+              "flex-1 py-2.5 rounded-md text-sm font-semibold border min-w-0",
               activeDay === day
                 ? "bg-accent-500 text-white border-accent-500"
                 : "bg-white text-stone-500 border-stone-200 hover:bg-stone-50 hover:text-stone-700",

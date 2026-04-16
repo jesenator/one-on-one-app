@@ -42,7 +42,7 @@ export default function AppNav({ admin, adminHref = "/admin" }: { admin: boolean
           <Link
             key={t.href}
             href={t.href}
-            className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 font-medium transition ${
+            className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 font-medium ${
               active
                 ? "bg-accent-50 text-accent-600"
                 : "text-stone-500 hover:text-stone-700 hover:bg-stone-100"
@@ -56,7 +56,7 @@ export default function AppNav({ admin, adminHref = "/admin" }: { admin: boolean
       {admin && (
         <Link
           href={adminHref}
-          className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 font-medium transition ${
+          className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 font-medium ${
             path.startsWith("/admin")
               ? "bg-accent-50 text-accent-600"
               : "text-stone-500 hover:text-stone-700 hover:bg-stone-100"

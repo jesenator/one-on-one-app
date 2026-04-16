@@ -67,7 +67,7 @@ export default async function AdminPage() {
             </div>
             <span className="text-sm font-semibold">App Admin</span>
           </div>
-          <Link href="/schedule" className="text-sm text-stone-500 hover:text-accent-600 transition font-medium inline-flex items-center gap-1">
+          <Link href="/schedule" className="text-sm text-stone-500 hover:text-accent-600 font-medium inline-flex items-center gap-1">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-3.5 h-3.5">
               <path fillRule="evenodd" d="M11.78 5.22a.75.75 0 0 1 0 1.06L8.06 10l3.72 3.72a.75.75 0 1 1-1.06 1.06l-4.25-4.25a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 0Z" clipRule="evenodd" />
             </svg>
@@ -76,7 +76,7 @@ export default async function AdminPage() {
         </div>
       </header>
 
-      <div className="mx-auto max-w-5xl px-6 py-8 space-y-8 animate-fade-in">
+      <div className="mx-auto max-w-5xl px-6 py-8 space-y-8">
         <div>
           <h2 className="text-sm font-bold text-stone-700 mb-3">Retreats</h2>
           <div className="overflow-hidden rounded-md border border-stone-200 bg-white shadow-sm divide-y divide-stone-100">
@@ -84,7 +84,7 @@ export default async function AdminPage() {
               <Link
                 key={r.id}
                 href={`/admin/${r.id}`}
-                className="p-4 flex items-center justify-between text-sm hover:bg-stone-50 transition"
+                className="p-4 flex items-center justify-between text-sm hover:bg-stone-50"
               >
                 <div>
                   <div className="font-semibold">{r.name}</div>
@@ -145,7 +145,7 @@ export default async function AdminPage() {
                 <input name="granularityMinutes" type="number" defaultValue={30} min={5} className="w-full border border-stone-200 rounded-md px-3 py-2 text-sm bg-stone-50/50 focus:outline-none focus:ring-2 focus:ring-accent-500/20 focus:border-accent-500" />
               </div>
             </div>
-            <button className="bg-accent-500 text-white rounded-md px-5 py-2.5 text-sm font-semibold hover:bg-accent-600 transition">
+            <button className="bg-accent-500 text-white rounded-md px-5 py-2.5 text-sm font-semibold hover:bg-accent-600">
               Create retreat
             </button>
           </form>
@@ -166,7 +166,7 @@ export default async function AdminPage() {
                     <ConfirmButton
                       message={`Remove ${u.name} as super admin?`}
                       label="Remove"
-                      className="text-xs text-red-500 font-medium border border-red-200 rounded-md px-2.5 py-1 hover:bg-red-50 transition"
+                      className="text-xs text-red-500 font-medium border border-red-200 rounded-md px-2.5 py-1 hover:bg-red-50"
                     />
                   </form>
                 )}
@@ -175,7 +175,7 @@ export default async function AdminPage() {
           </div>
           <form action={addSuperAdmin} className="mt-3 flex gap-2">
             <input name="email" type="email" required placeholder="Email address" className="flex-1 border border-stone-200 rounded-md px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-accent-500/20 focus:border-accent-500" />
-            <button className="bg-accent-500 text-white rounded-md px-4 py-2 text-sm font-semibold hover:bg-accent-600 transition">
+            <button className="bg-accent-500 text-white rounded-md px-4 py-2 text-sm font-semibold hover:bg-accent-600">
               Add
             </button>
           </form>

@@ -20,7 +20,7 @@ export default async function NoRetreatPage() {
         </p>
         <div className="mt-8">
           <form action="/api/auth/logout" method="post">
-            <button className="text-sm text-stone-500 font-medium border border-stone-200 rounded-md px-4 py-2 hover:bg-stone-50 transition">
+            <button className="text-sm text-stone-500 font-medium border border-stone-200 rounded-md px-4 py-2 hover:bg-stone-50">
               Log out
             </button>
           </form>

@@ -33,7 +33,7 @@ export default function SendRemindersButton({
         <button
           type="button"
           onClick={() => setShowModal(true)}
-          className="text-sm font-medium text-accent-600 border border-accent-200 rounded-md px-3 py-1.5 hover:bg-accent-50 transition"
+          className="text-sm font-medium text-accent-600 border border-accent-200 rounded-md px-3 py-1.5 hover:bg-accent-50"
         >
           Remind pending ({pendingUsers.length} {pendingUsers.length === 1 ? "person" : "people"})
         </button>
@@ -74,7 +74,7 @@ export default function SendRemindersButton({
                 type="button"
                 onClick={() => setShowModal(false)}
                 disabled={isPending}
-                className="text-sm font-medium text-stone-500 border border-stone-200 rounded-md px-3 py-1.5 hover:bg-stone-100 transition disabled:opacity-50"
+                className="text-sm font-medium text-stone-500 border border-stone-200 rounded-md px-3 py-1.5 hover:bg-stone-100 disabled:opacity-50"
               >
                 Cancel
               </button>
@@ -84,7 +84,7 @@ export default function SendRemindersButton({
                 <button
                   type="submit"
                   disabled={isPending}
-                  className="text-sm font-medium text-white bg-accent-500 rounded-md px-3 py-1.5 hover:bg-accent-600 transition disabled:opacity-50"
+                  className="text-sm font-medium text-white bg-accent-500 rounded-md px-3 py-1.5 hover:bg-accent-600 disabled:opacity-50"
                 >
                   {isPending ? "Sending..." : "Send reminders"}
                 </button>

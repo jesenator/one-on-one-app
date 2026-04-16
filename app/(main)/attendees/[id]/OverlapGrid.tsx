@@ -85,7 +85,7 @@ export default function OverlapGrid({
   const totalPending = allSlots.filter((iso) => classify(iso) === "pending").length;
 
   const base =
-    "slot-card flex items-center gap-2 pl-3 pr-0 py-0 rounded-md border text-sm overflow-hidden min-h-[36px]";
+    "flex items-center gap-2 pl-3 pr-0 py-0 rounded-md border text-sm overflow-hidden min-h-[36px]";
 
   function renderSlot(iso: string, { isHighlighted }: { isHighlighted: boolean; isPast: boolean }) {
     const state = classify(iso);
@@ -99,7 +99,7 @@ export default function OverlapGrid({
       return (
         <div
           key={iso}
-          className={`${base} border-accent-200 bg-accent-50 hover:bg-accent-100 cursor-pointer transition ${hlCls}`}
+          className={`${base} border-accent-200 bg-accent-50 hover:bg-accent-100 cursor-pointer ${hlCls}`}
           onClick={() => setConfirm(iso)}
         >
           <span className="text-xs text-accent-700 w-16 shrink-0 font-semibold">{time}</span>
@@ -108,7 +108,7 @@ export default function OverlapGrid({
           <div className="flex self-stretch shrink-0 w-[72px] border-l border-accent-200">
             <button
               disabled={busy === iso}
-              className="self-stretch flex-1 text-accent-600 text-xs font-semibold hover:bg-accent-200 transition"
+              className="self-stretch flex-1 text-accent-600 text-xs font-semibold hover:bg-accent-200"
             >
               Request
             </button>
@@ -121,7 +121,7 @@ export default function OverlapGrid({
       return (
         <div key={iso} className={`${base} border-amber-200 bg-amber-50 ${hlCls}`}>
           <span className="text-xs text-amber-700 w-16 shrink-0 font-semibold">{time}</span>
-          <div className="w-2 h-2 rounded-full bg-amber-500 shrink-0 animate-pulse" />
+          <div className="w-2 h-2 rounded-full bg-amber-500 shrink-0" />
           <span className="text-sm font-medium text-amber-800 truncate flex-1">Requested</span>
         </div>
       );
@@ -185,11 +185,11 @@ export default function OverlapGrid({
 
       {confirm && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 animate-backdrop"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
           onClick={() => setConfirm(null)}
         >
           <div
-            className="bg-white rounded-lg border border-stone-200 shadow-lg p-6 w-full max-w-sm mx-4 animate-modal"
+            className="bg-white rounded-lg border border-stone-200 shadow-lg p-6 w-full max-w-sm mx-4"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="w-10 h-10 rounded-md bg-accent-500 flex items-center justify-center mb-4">
@@ -208,14 +208,14 @@ export default function OverlapGrid({
             <div className="flex gap-2.5 justify-end">
               <button
                 onClick={() => setConfirm(null)}
-                className="px-4 py-2 text-sm font-medium border border-stone-200 rounded-md hover:bg-stone-50 transition text-stone-600"
+                className="px-4 py-2 text-sm font-medium border border-stone-200 rounded-md hover:bg-stone-50 text-stone-600"
               >
                 Cancel
               </button>
               <button
                 onClick={() => request(confirm)}
                 disabled={busy === confirm}
-                className="px-4 py-2 text-sm font-semibold bg-accent-500 text-white rounded-md hover:bg-accent-600 transition disabled:opacity-50"
+                className="px-4 py-2 text-sm font-semibold bg-accent-500 text-white rounded-md hover:bg-accent-600 disabled:opacity-50"
               >
                 {busy === confirm ? "Sending..." : "Confirm"}
               </button>
