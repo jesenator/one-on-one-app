@@ -71,3 +71,4 @@ export default function AppNav({ admin }: { admin: boolean }) {
     </nav>
   );
 }
+
