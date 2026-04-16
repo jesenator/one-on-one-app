@@ -2,7 +2,8 @@ import { redirect, notFound } from "next/navigation";
 import Link from "next/link";
 import { getSession } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
-import { isRetreatAdmin, isSuperAdmin, nowInRetreatTz } from "@/lib/config";
+import { isRetreatAdmin, isSuperAdmin, nowInRetreatTz, generateSlots, groupSlotsByDay } from "@/lib/config";
+import SlotChipPicker from "./SlotChipPicker";
 import { formatSlotDay, formatSlotTime } from "@/lib/format";
 import { notifyPendingReminder } from "@/lib/notifications";
 import ConfirmButton from "../ConfirmButton";
@@ -29,6 +30,7 @@ async function updateSettings(formData: FormData) {
       dayStart: String(formData.get("dayStart") || "08:00").trim(),
       dayEnd: String(formData.get("dayEnd") || "22:00").trim(),
       granularityMinutes: Number(formData.get("granularityMinutes")) || 30,
+      highlightedSlots: String(formData.get("highlightedSlots") || "").split("\n").map((s) => s.trim()).filter(Boolean),
       active: formData.get("active") === "on",
     },
   });
@@ -114,6 +116,10 @@ export default async function RetreatAdminPage({ params }: { params: Promise<{ r
 
   const retreat = await prisma.retreat.findUnique({ where: { id: retreatId } });
   if (!retreat) notFound();
+
+  const slotGroupsIso = Object.fromEntries(
+    Object.entries(groupSlotsByDay(generateSlots(retreat))).map(([k, v]) => [k, v.map((d) => d.toISOString())])
+  );
 
   const [attendees, meetings, allRequests, admins] = await Promise.all([
     prisma.retreatAttendance.findMany({
@@ -237,6 +243,10 @@ export default async function RetreatAdminPage({ params }: { params: Promise<{ r
                 <label className="block text-xs font-semibold text-stone-600 mb-1">Slot minutes</label>
                 <input name="granularityMinutes" type="number" defaultValue={retreat.granularityMinutes} min={5} className="w-full border border-stone-200 rounded-md px-3 py-2 text-sm bg-stone-50/50 focus:outline-none focus:ring-2 focus:ring-accent-500/20 focus:border-accent-500" />
               </div>
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-stone-600 mb-1.5">Highlighted slots</label>
+              <SlotChipPicker groups={slotGroupsIso} initial={retreat.highlightedSlots} />
             </div>
             <label className="flex items-center gap-2 text-sm">
               <input type="checkbox" name="active" defaultChecked={retreat.active} className="rounded border-stone-300" />
