@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Retreat 1:1 Scheduler",
+  title: "Pairwise - 1:1 Scheduler",
   description: "Schedule 1:1 meetings at your retreat",
 };
 
