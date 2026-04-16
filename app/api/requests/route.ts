@@ -27,9 +27,10 @@ export async function POST(req: Request) {
   if (!retreat)
     return NextResponse.json({ error: "retreat not found" }, { status: 400 });
 
-  if (slotStart.getTime() < nowInRetreatTz(retreat).getTime()) {
+  const BUFFER_MS = 30 * 60 * 1000;
+  if (slotStart.getTime() < nowInRetreatTz(retreat).getTime() + BUFFER_MS) {
     return NextResponse.json(
-      { error: "Can't book a slot in the past." },
+      { error: "Can't book a slot less than 30 minutes from now." },
       { status: 400 },
     );
   }
