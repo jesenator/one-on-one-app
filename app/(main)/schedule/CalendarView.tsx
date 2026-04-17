@@ -170,8 +170,8 @@ export default function CalendarView({
                 disabled={busy === state.meeting.requestId}
                 className={`self-stretch flex-1 text-xs font-medium ${
                   confirmingCancel === state.meeting.requestId
-                    ? "text-red-600 bg-red-50 font-semibold"
-                    : "text-red-400 hover:bg-red-50 hover:text-red-600"
+                    ? "text-stone-800 bg-stone-100 font-semibold"
+                    : "text-stone-600 hover:bg-stone-50 hover:text-stone-800"
                 }`}
               >
                 {confirmingCancel === state.meeting.requestId ? "Sure?" : "Cancel"}
