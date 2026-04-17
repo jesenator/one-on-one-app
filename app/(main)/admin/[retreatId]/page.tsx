@@ -6,6 +6,7 @@ import { prisma } from "@/lib/prisma";
 import { isRetreatAdmin, isSuperAdmin, isValidTimezone, nowInRetreatTz, generateSlots, groupSlotsByDay } from "@/lib/config";
 import SlotChipPicker from "./SlotChipPicker";
 import CopyJoinLink from "./CopyJoinLink";
+import SettingsSaveButton from "./SettingsSaveButton";
 import TimezoneSelect from "../TimezoneSelect";
 import { formatSlotDay, formatSlotTime } from "@/lib/format";
 import { notifyPendingReminder } from "@/lib/notifications";
@@ -234,6 +235,9 @@ export default async function RetreatAdminPage({ params }: { params: Promise<{ r
           <h2 className="text-sm font-bold text-stone-700 mb-3">Settings</h2>
           <form action={updateSettings} className="overflow-hidden rounded-md border border-stone-200 bg-white shadow-sm p-6 space-y-4">
             <input type="hidden" name="retreatId" value={retreatId} />
+            <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2.5 text-xs text-red-800 leading-relaxed">
+              <span className="font-semibold">Warning:</span> avoid changing settings after the retreat has begun. In particular, changing <span className="font-semibold">slots start</span> or <span className="font-semibold">slot minutes</span> will break existing availability and booked meetings.
+            </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs font-semibold text-stone-600 mb-1">Name</label>
@@ -288,7 +292,16 @@ export default async function RetreatAdminPage({ params }: { params: Promise<{ r
               <input type="checkbox" name="active" defaultChecked={retreat.active} className="rounded border-stone-300" />
               <span className="font-medium text-stone-700">Active</span>
             </label>
-            <button className="bg-accent-500 text-white rounded-md px-5 py-2.5 text-sm font-semibold hover:bg-accent-600">Save settings</button>
+            <SettingsSaveButton
+              initial={{
+                slotsStart: retreat.slotsStart,
+                slotsEnd: retreat.slotsEnd,
+                dayStart: retreat.dayStart,
+                dayEnd: retreat.dayEnd,
+                granularityMinutes: retreat.granularityMinutes,
+                timezone: retreat.timezone,
+              }}
+            />
           </form>
         </div>
 
