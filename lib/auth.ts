@@ -52,7 +52,7 @@ export async function sendMagicLinkEmail(email: string, link: string) {
       from,
       subject: "Your Pairwise login link",
       text: `Click to log in: ${link}\n\nThis link expires in 30 minutes.`,
-      html: `<p>Click to log in to Pairwise:</p><p><a href="${link}">${link}</a></p><p>This link expires in 30 minutes.</p>`,
+      html: `<p><a href="${link}">Click here to log in to Pairwise</a></p><p>This link expires in 30 minutes.</p>`,
     });
     console.log("[sendgrid] email sent to", email);
   } catch (err: unknown) {
@@ -74,7 +74,7 @@ export async function consumeMagicLink(token: string) {
   // Upsert user
   const user = await prisma.user.upsert({
     where: { email: record.email },
-    update: { name: record.name },
+    update: {},
     create: { email: record.email, name: record.name },
   });
   return user;
