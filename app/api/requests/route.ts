@@ -4,6 +4,7 @@ import { getSession } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { notifyNewRequest } from "@/lib/notifications";
 import { getRetreat, nowInRetreatTz } from "@/lib/config";
+import { lockSlot } from "@/lib/booking";
 
 const schema = z.object({
   toUserId: z.string(),
@@ -43,6 +44,7 @@ export async function POST(req: Request) {
   let created;
   try {
     created = await prisma.$transaction(async (tx) => {
+      await lockSlot(tx, retreatId, slotStart, [userId, parsed.data.toUserId]);
       const [fromAvail, toAvail, conflict] = await Promise.all([
         tx.availability.findUnique({
           where: {

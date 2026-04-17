@@ -3,6 +3,7 @@ import { z } from "zod";
 import { getSession } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { notifyRequestAccepted, notifyRequestDeclined, notifyMeetingCancelled } from "@/lib/notifications";
+import { lockSlot } from "@/lib/booking";
 
 const schema = z.object({
   action: z.enum(["accept", "decline", "cancel"]),
@@ -31,6 +32,7 @@ export async function POST(
       // Check conflict and update atomically to prevent double-booking
       try {
         await prisma.$transaction(async (tx) => {
+          await lockSlot(tx, mr.retreatId, mr.slotStart, [mr.fromUserId, mr.toUserId]);
           const conflict = await tx.meetingRequest.findFirst({
             where: {
               retreatId: mr.retreatId,
