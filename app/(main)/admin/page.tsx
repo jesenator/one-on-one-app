@@ -2,8 +2,9 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getSession } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
-import { isSuperAdmin } from "@/lib/config";
+import { isSuperAdmin, isValidTimezone } from "@/lib/config";
 import ConfirmButton from "./ConfirmButton";
+import TimezoneSelect from "./TimezoneSelect";
 
 export const metadata = { title: "App Admin" };
 
@@ -20,6 +21,7 @@ async function createRetreat(formData: FormData) {
   const dayEnd = String(formData.get("dayEnd") || "22:00").trim();
   const granularity = Number(formData.get("granularityMinutes")) || 30;
   if (!id || !name || !timezone || !slotsStart || !slotsEnd) redirect("/admin");
+  if (!isValidTimezone(timezone)) redirect("/admin");
   await prisma.retreat.create({
     data: { id, name, timezone, slotsStart, slotsEnd, dayStart, dayEnd, granularityMinutes: granularity, highlightedSlots: [] },
   });
@@ -104,7 +106,11 @@ export default async function AdminPage() {
             </div>
             <div>
               <label className="block text-xs font-semibold text-stone-600 mb-1">Timezone</label>
-              <input name="timezone" required placeholder="America/Chicago" className="w-full border border-stone-200 rounded-md px-3 py-2 text-sm bg-stone-50/50 focus:outline-none focus:ring-2 focus:ring-accent-500/20 focus:border-accent-500" />
+              <TimezoneSelect
+                name="timezone"
+                required
+                className="w-full border border-stone-200 rounded-md px-3 py-2 text-sm bg-stone-50/50 focus:outline-none focus:ring-2 focus:ring-accent-500/20 focus:border-accent-500"
+              />
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>

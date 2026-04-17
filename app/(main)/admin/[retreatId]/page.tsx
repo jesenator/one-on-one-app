@@ -3,9 +3,10 @@ import Link from "next/link";
 import { headers } from "next/headers";
 import { getSession } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
-import { isRetreatAdmin, isSuperAdmin, nowInRetreatTz, generateSlots, groupSlotsByDay } from "@/lib/config";
+import { isRetreatAdmin, isSuperAdmin, isValidTimezone, nowInRetreatTz, generateSlots, groupSlotsByDay } from "@/lib/config";
 import SlotChipPicker from "./SlotChipPicker";
 import CopyJoinLink from "./CopyJoinLink";
+import TimezoneSelect from "../TimezoneSelect";
 import { formatSlotDay, formatSlotTime } from "@/lib/format";
 import { notifyPendingReminder } from "@/lib/notifications";
 import ConfirmButton from "../ConfirmButton";
@@ -22,11 +23,13 @@ async function updateSettings(formData: FormData) {
   "use server";
   const retreatId = String(formData.get("retreatId"));
   await requireAdmin(retreatId);
+  const timezone = String(formData.get("timezone") || "").trim();
+  if (!isValidTimezone(timezone)) redirect(`/admin/${retreatId}`);
   await prisma.retreat.update({
     where: { id: retreatId },
     data: {
       name: String(formData.get("name") || "").trim(),
-      timezone: String(formData.get("timezone") || "").trim(),
+      timezone,
       slotsStart: String(formData.get("slotsStart") || "").trim(),
       slotsEnd: String(formData.get("slotsEnd") || "").trim(),
       dayStart: String(formData.get("dayStart") || "08:00").trim(),
@@ -238,7 +241,12 @@ export default async function RetreatAdminPage({ params }: { params: Promise<{ r
               </div>
               <div>
                 <label className="block text-xs font-semibold text-stone-600 mb-1">Timezone</label>
-                <input name="timezone" required defaultValue={retreat.timezone} className="w-full border border-stone-200 rounded-md px-3 py-2 text-sm bg-stone-50/50 focus:outline-none focus:ring-2 focus:ring-accent-500/20 focus:border-accent-500" />
+                <TimezoneSelect
+                  name="timezone"
+                  required
+                  defaultValue={retreat.timezone}
+                  className="w-full border border-stone-200 rounded-md px-3 py-2 text-sm bg-stone-50/50 focus:outline-none focus:ring-2 focus:ring-accent-500/20 focus:border-accent-500"
+                />
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4">

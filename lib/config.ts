@@ -59,6 +59,16 @@ export function nowInRetreatTz(retreat: RetreatConfig): Date {
   );
 }
 
+export function isValidTimezone(tz: string): boolean {
+  if (!tz) return false;
+  try {
+    new Intl.DateTimeFormat("en-US", { timeZone: tz });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 export function groupSlotsByDay(slots: Date[]): Record<string, Date[]> {
   const groups: Record<string, Date[]> = {};
   for (const s of slots) {
