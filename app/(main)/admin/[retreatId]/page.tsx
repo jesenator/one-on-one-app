@@ -1,9 +1,11 @@
 import { redirect, notFound } from "next/navigation";
 import Link from "next/link";
+import { headers } from "next/headers";
 import { getSession } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { isRetreatAdmin, isSuperAdmin, nowInRetreatTz, generateSlots, groupSlotsByDay } from "@/lib/config";
 import SlotChipPicker from "./SlotChipPicker";
+import CopyJoinLink from "./CopyJoinLink";
 import { formatSlotDay, formatSlotTime } from "@/lib/format";
 import { notifyPendingReminder } from "@/lib/notifications";
 import ConfirmButton from "../ConfirmButton";
@@ -113,6 +115,10 @@ export default async function RetreatAdminPage({ params }: { params: Promise<{ r
   if (!s.userId) redirect("/login");
   if (!(await isRetreatAdmin(s.userId, retreatId))) redirect("/schedule");
   const superAdmin = await isSuperAdmin(s.userId);
+  const h = await headers();
+  const host = h.get("host") || "localhost:3000";
+  const proto = host.includes("localhost") ? "http" : "https";
+  const joinUrl = `${proto}://${host}/join/${retreatId}`;
 
   const retreat = await prisma.retreat.findUnique({ where: { id: retreatId } });
   if (!retreat) notFound();
@@ -174,36 +180,21 @@ export default async function RetreatAdminPage({ params }: { params: Promise<{ r
   const sendRemindersForRetreat = sendPendingReminders.bind(null);
 
   return (
-    <div className="min-h-screen bg-stone-50 text-stone-900">
-      <div className="h-0.5 bg-accent-500" />
-      <header className="border-b border-stone-200/80 bg-white/80 backdrop-blur-md sticky top-0 z-40">
-        <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-3">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-md bg-accent-500 flex items-center justify-center">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="white" className="w-4 h-4">
-                <path fillRule="evenodd" d="M7.84 1.804A1 1 0 0 1 8.82 1h2.36a1 1 0 0 1 .98.804l.331 1.652a6.993 6.993 0 0 1 1.929 1.115l1.598-.54a1 1 0 0 1 1.186.447l1.18 2.044a1 1 0 0 1-.205 1.251l-1.267 1.113a7.047 7.047 0 0 1 0 2.228l1.267 1.113a1 1 0 0 1 .206 1.25l-1.18 2.045a1 1 0 0 1-1.187.447l-1.598-.54a6.993 6.993 0 0 1-1.929 1.115l-.33 1.652a1 1 0 0 1-.98.804H8.82a1 1 0 0 1-.98-.804l-.331-1.652a6.993 6.993 0 0 1-1.929-1.115l-1.598.54a1 1 0 0 1-1.186-.447l-1.18-2.044a1 1 0 0 1 .205-1.251l1.267-1.114a7.05 7.05 0 0 1 0-2.227L1.821 7.773a1 1 0 0 1-.206-1.25l1.18-2.045a1 1 0 0 1 1.187-.447l1.598.54A6.992 6.992 0 0 1 7.51 3.456l.33-1.652ZM10 13a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" clipRule="evenodd" />
-              </svg>
-            </div>
-            <div>
-              <div className="text-sm font-semibold">{retreat.name} Admin</div>
-            </div>
-          </div>
-          <div className="flex items-center gap-3">
-            {superAdmin && (
-              <Link href="/admin" className="text-sm text-stone-500 hover:text-accent-600 font-medium">App admin</Link>
-            )}
-            <Link href="/schedule" className="text-sm text-stone-500 hover:text-accent-600 font-medium inline-flex items-center gap-1">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-3.5 h-3.5">
-                <path fillRule="evenodd" d="M11.78 5.22a.75.75 0 0 1 0 1.06L8.06 10l3.72 3.72a.75.75 0 1 1-1.06 1.06l-4.25-4.25a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 0Z" clipRule="evenodd" />
-              </svg>
-              Back to app
+    <div className="space-y-8">
+      <div>
+        <div className="flex items-center justify-between">
+          <h1 className="text-2xl font-bold text-stone-900">{retreat.name} Admin</h1>
+          {superAdmin && (
+            <Link href="/admin" className="text-xs font-semibold text-white bg-stone-800 rounded-md px-3 py-1.5 hover:bg-stone-900 transition">
+              All retreats
             </Link>
-          </div>
+          )}
         </div>
-      </header>
-
-      <div className="mx-auto max-w-5xl px-6 py-8 space-y-8">
-        <div className="text-xs text-stone-400">Join link: <code className="bg-stone-100 px-1.5 py-0.5 rounded">/join/{retreatId}</code></div>
+        <div className="flex items-center gap-2 mt-1.5">
+          <span className="text-xs text-stone-400">Join link:</span>
+          <CopyJoinLink url={joinUrl} />
+        </div>
+      </div>
 
         {/* Settings */}
         <div>
@@ -244,10 +235,17 @@ export default async function RetreatAdminPage({ params }: { params: Promise<{ r
                 <input name="granularityMinutes" type="number" defaultValue={retreat.granularityMinutes} min={5} className="w-full border border-stone-200 rounded-md px-3 py-2 text-sm bg-stone-50/50 focus:outline-none focus:ring-2 focus:ring-accent-500/20 focus:border-accent-500" />
               </div>
             </div>
-            <div>
-              <label className="block text-xs font-semibold text-stone-600 mb-1.5">Highlighted slots</label>
-              <SlotChipPicker groups={slotGroupsIso} initial={retreat.highlightedSlots} />
-            </div>
+            <details className="group">
+              <summary className="text-xs font-semibold text-stone-600 cursor-pointer select-none flex items-center gap-1.5">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" className="w-3 h-3 text-stone-400 transition-transform group-open:rotate-90">
+                  <path fillRule="evenodd" d="M6.22 4.22a.75.75 0 0 1 1.06 0l3.25 3.25a.75.75 0 0 1 0 1.06l-3.25 3.25a.75.75 0 0 1-1.06-1.06L8.94 8 6.22 5.28a.75.75 0 0 1 0-1.06Z" clipRule="evenodd" />
+                </svg>
+                Highlighted slots ({retreat.highlightedSlots.length})
+              </summary>
+              <div className="mt-2">
+                <SlotChipPicker groups={slotGroupsIso} initial={retreat.highlightedSlots} />
+              </div>
+            </details>
             <label className="flex items-center gap-2 text-sm">
               <input type="checkbox" name="active" defaultChecked={retreat.active} className="rounded border-stone-300" />
               <span className="font-medium text-stone-700">Active</span>
@@ -353,7 +351,6 @@ export default async function RetreatAdminPage({ params }: { params: Promise<{ r
             {meetings.length === 0 && <div className="p-4 text-xs text-stone-400">No meetings.</div>}
           </div>
         </div>
-      </div>
     </div>
   );
 }

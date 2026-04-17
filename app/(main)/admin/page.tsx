@@ -5,6 +5,8 @@ import { prisma } from "@/lib/prisma";
 import { isSuperAdmin } from "@/lib/config";
 import ConfirmButton from "./ConfirmButton";
 
+export const metadata = { title: "App Admin" };
+
 async function createRetreat(formData: FormData) {
   "use server";
   const s = await getSession();
@@ -55,29 +57,12 @@ export default async function AdminPage() {
   ]);
 
   return (
-    <div className="min-h-screen bg-stone-50 text-stone-900">
-      <div className="h-0.5 bg-accent-500" />
-      <header className="border-b border-stone-200/80 bg-white/80 backdrop-blur-md sticky top-0 z-40">
-        <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-3">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-md bg-accent-500 flex items-center justify-center">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="white" className="w-4 h-4">
-                <path fillRule="evenodd" d="M7.84 1.804A1 1 0 0 1 8.82 1h2.36a1 1 0 0 1 .98.804l.331 1.652a6.993 6.993 0 0 1 1.929 1.115l1.598-.54a1 1 0 0 1 1.186.447l1.18 2.044a1 1 0 0 1-.205 1.251l-1.267 1.113a7.047 7.047 0 0 1 0 2.228l1.267 1.113a1 1 0 0 1 .206 1.25l-1.18 2.045a1 1 0 0 1-1.187.447l-1.598-.54a6.993 6.993 0 0 1-1.929 1.115l-.33 1.652a1 1 0 0 1-.98.804H8.82a1 1 0 0 1-.98-.804l-.331-1.652a6.993 6.993 0 0 1-1.929-1.115l-1.598.54a1 1 0 0 1-1.186-.447l-1.18-2.044a1 1 0 0 1 .205-1.251l1.267-1.114a7.05 7.05 0 0 1 0-2.227L1.821 7.773a1 1 0 0 1-.206-1.25l1.18-2.045a1 1 0 0 1 1.187-.447l1.598.54A6.992 6.992 0 0 1 7.51 3.456l.33-1.652ZM10 13a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" clipRule="evenodd" />
-              </svg>
-            </div>
-            <span className="text-sm font-semibold">App Admin</span>
-          </div>
-          <Link href="/schedule" className="text-sm text-stone-500 hover:text-accent-600 font-medium inline-flex items-center gap-1">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-3.5 h-3.5">
-              <path fillRule="evenodd" d="M11.78 5.22a.75.75 0 0 1 0 1.06L8.06 10l3.72 3.72a.75.75 0 1 1-1.06 1.06l-4.25-4.25a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 0Z" clipRule="evenodd" />
-            </svg>
-            Back to app
-          </Link>
-        </div>
-      </header>
-
-      <div className="mx-auto max-w-5xl px-6 py-8 space-y-8">
-        <div>
+    <div className="space-y-8">
+      <div>
+        <h1 className="text-2xl font-bold text-stone-900">App Admin</h1>
+        <p className="text-sm text-stone-400 mt-0.5">Manage retreats and super admins</p>
+      </div>
+      <div>
           <h2 className="text-sm font-bold text-stone-700 mb-3">Retreats</h2>
           <div className="overflow-hidden rounded-md border border-stone-200 bg-white shadow-sm divide-y divide-stone-100">
             {retreats.map((r) => (
@@ -180,7 +165,6 @@ export default async function AdminPage() {
             </button>
           </form>
         </div>
-      </div>
     </div>
   );
 }
