@@ -1,7 +1,9 @@
 import type { NextConfig } from "next";
 
 const shortlinks: Record<string, string> = {
-  "/wc": "/west-coast-ea-2026",
+  "/wc": "/join/west-coast-ea-2026",
+  "/mw": "/join/midwest-ea-2026",
+  "/ne": "/join/northeast-ea-2026",
 };
 
 const nextConfig: NextConfig = {

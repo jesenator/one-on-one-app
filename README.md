@@ -37,25 +37,13 @@ See `.env.example`. All are required for production:
 
 ## Configuring retreats
 
-Edit `config/retreats.json`:
+Retreats are stored in the database and managed through the UI. Super admins can create, edit, and deactivate retreats at `/admin`, and assign per-retreat admins from `/admin/<retreatId>`.
 
-```json
-{
-  "id": "west-coast-ea-2026",
-  "name": "West Coast EA Retreat",
-  "timezone": "America/Los_Angeles",
-  "active": true,
-  "slots": {
-    "start": "2026-04-10T20:00",
-    "end": "2026-04-12T19:00",
-    "dayStart": "08:00",
-    "dayEnd": "20:30",
-    "granularityMinutes": 30
-  }
-}
-```
+The first super admin is bootstrapped via the initial migration (see `prisma/migrations/.../migration.sql`). After that, super admins grant each other access from the `/admin` page.
 
-Add admin emails to `adminEmails` in the same file.
+### Shortlinks
+
+`next.config.ts` contains a `shortlinks` map that redirects short paths (e.g. `/wc`) to the full join URL (`/join/west-coast-ea-2026`). Add new entries there and restart the dev server.
 
 ## Deploy to Vercel
 
@@ -83,4 +71,5 @@ Add admin emails to `adminEmails` in the same file.
 
 ## Admin
 
-Admins (listed in `config/retreats.json` under `adminEmails`) can remove attendees and cancel any meeting.
+- **Super admins** (`User.superAdmin = true`) can create retreats, manage any retreat, and grant/revoke super admin access at `/admin`.
+- **Retreat admins** (rows in `RetreatAdmin`) can manage a single retreat's settings, attendees, and meetings at `/admin/<retreatId>`.
