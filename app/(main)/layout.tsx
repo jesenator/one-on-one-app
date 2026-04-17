@@ -42,8 +42,8 @@ export default async function AppLayout({
       <main className="mx-auto max-w-5xl px-6 py-8">{children}</main>
       <footer className="mt-auto py-4 text-center text-xs text-stone-400">
         Found a bug? Suggest a feature? Contact{" "}
-        <a href="mailto:hello@parawise.now" className="underline hover:text-stone-600">
-          hello@parawise.now
+        <a href="mailto:hello@pairwise.now" className="underline hover:text-stone-600">
+          hello@pairwise.now
         </a>
       </footer>
     </div>

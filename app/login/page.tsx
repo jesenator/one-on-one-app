@@ -11,8 +11,8 @@ export default function LoginPage() {
       </main>
       <footer className="py-4 text-center text-xs text-stone-400">
         Found a bug? Suggest a feature? Contact{" "}
-        <a href="mailto:hello@parawise.now" className="underline hover:text-stone-600">
-          hello@parawise.now
+        <a href="mailto:hello@pairwise.now" className="underline hover:text-stone-600">
+          hello@pairwise.now
         </a>
       </footer>
     </div>
