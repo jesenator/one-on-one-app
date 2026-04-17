@@ -27,24 +27,21 @@ export default async function AttendeeProfile({
   const slots = generateSlots(retreat);
   const groups = groupSlotsByDay(slots);
 
-  const [mine, theirs, myAccepted, theirBooked, pending] = await Promise.all([
+  const [mine, theirs, myMeetings, theirMeetings, pending] = await Promise.all([
     getMyAvailability(s.userId, s.retreatId),
     getMyAvailability(id, s.retreatId),
     prisma.meetingRequest.findMany({
       where: {
         retreatId: s.retreatId,
-        status: "accepted",
+        status: { in: ["accepted", "pending"] },
         OR: [{ fromUserId: s.userId }, { toUserId: s.userId }],
       },
-      include: {
-        from: { select: { id: true, name: true } },
-        to: { select: { id: true, name: true } },
-      },
+      select: { slotStart: true },
     }),
     prisma.meetingRequest.findMany({
       where: {
         retreatId: s.retreatId,
-        status: "accepted",
+        status: { in: ["accepted", "pending"] },
         OR: [{ fromUserId: id }, { toUserId: id }],
       },
       select: { slotStart: true },
@@ -52,21 +49,15 @@ export default async function AttendeeProfile({
     prisma.meetingRequest.findMany({
       where: {
         retreatId: s.retreatId,
-        status: "pending",
+        status: { in: ["accepted", "pending"] },
         OR: [
           { fromUserId: s.userId, toUserId: id },
           { fromUserId: id, toUserId: s.userId },
         ],
       },
-      select: { id: true, slotStart: true, fromUserId: true },
+      select: { id: true, slotStart: true, fromUserId: true, status: true },
     }),
   ]);
-
-  const myBookedMeetings: Record<string, string> = {};
-  for (const m of myAccepted) {
-    const other = m.fromUserId === s.userId ? m.to : m.from;
-    myBookedMeetings[m.slotStart.toISOString()] = other.name || "someone";
-  }
 
   return (
     <div>
@@ -94,12 +85,13 @@ export default async function AttendeeProfile({
         )}
         mine={Array.from(mine)}
         theirs={Array.from(theirs)}
-        myBookedMeetings={myBookedMeetings}
-        theirBooked={theirBooked.map((p) => p.slotStart.toISOString())}
-        pending={pending.map((p) => ({
+        myBooked={myMeetings.map((m) => m.slotStart.toISOString())}
+        theirBooked={theirMeetings.map((m) => m.slotStart.toISOString())}
+        betweenUs={pending.map((p) => ({
           requestId: p.id,
           slotStart: p.slotStart.toISOString(),
           direction: p.fromUserId === s.userId ? "outgoing" : "incoming",
+          status: p.status as "pending" | "accepted",
         }))}
         highlightedSlots={retreat.highlightedSlots ?? []}
         now={nowInRetreatTz(retreat).toISOString()}

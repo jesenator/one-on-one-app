@@ -15,16 +15,28 @@ export default async function AttendeesPage({
   let others: { id: string; name: string; email: string }[];
 
   if (slot) {
-    const availableRecords = await prisma.availability.findMany({
-      where: {
-        retreatId: s.retreatId,
-        slotStart: new Date(slot),
-        userId: { not: s.userId },
-      },
-      include: { user: { select: { id: true, name: true, email: true } } },
-    });
+    const [availableRecords, busy] = await Promise.all([
+      prisma.availability.findMany({
+        where: {
+          retreatId: s.retreatId,
+          slotStart: new Date(slot),
+          userId: { not: s.userId },
+        },
+        include: { user: { select: { id: true, name: true, email: true } } },
+      }),
+      prisma.meetingRequest.findMany({
+        where: {
+          retreatId: s.retreatId,
+          slotStart: new Date(slot),
+          status: { in: ["accepted", "pending"] },
+        },
+        select: { fromUserId: true, toUserId: true },
+      }),
+    ]);
+    const busyIds = new Set(busy.flatMap((m) => [m.fromUserId, m.toUserId]));
     others = availableRecords
       .map((a) => a.user)
+      .filter((u) => !busyIds.has(u.id))
       .sort((a, b) => a.name.localeCompare(b.name));
   } else {
     const att = await prisma.retreatAttendance.findMany({

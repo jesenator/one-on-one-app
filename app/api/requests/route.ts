@@ -66,7 +66,7 @@ export async function POST(req: Request) {
           where: {
             retreatId,
             slotStart,
-            status: "accepted",
+            status: { in: ["accepted", "pending"] },
             OR: [
               { fromUserId: userId },
               { toUserId: userId },
@@ -77,7 +77,7 @@ export async function POST(req: Request) {
         }),
       ]);
       if (!fromAvail || !toAvail) throw new Error("Both users must mark this slot available.");
-      if (conflict) throw new Error("Slot already booked.");
+      if (conflict) throw new Error("That time is no longer available.");
 
       return tx.meetingRequest.create({
         data: {

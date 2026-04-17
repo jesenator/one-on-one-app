@@ -4,10 +4,11 @@ import { useRouter } from "next/navigation";
 import { formatSlotTime, formatSlotDay } from "@/lib/format";
 import SlotGrid from "../../SlotGrid";
 
-type PendingRequest = {
+type BetweenUsRequest = {
   requestId: string;
   slotStart: string;
   direction: "incoming" | "outgoing";
+  status: "pending" | "accepted";
 };
 
 type Props = {
@@ -16,9 +17,9 @@ type Props = {
   groups: Record<string, string[]>;
   mine: string[];
   theirs: string[];
-  myBookedMeetings: Record<string, string>;
+  myBooked: string[];
   theirBooked: string[];
-  pending: PendingRequest[];
+  betweenUs: BetweenUsRequest[];
   highlightedSlots?: string[];
   now: string;
   preselectedSlot?: string;
@@ -28,6 +29,7 @@ type SlotState =
   | "available"
   | "pendingOutgoing"
   | "pendingIncoming"
+  | "confirmed"
   | "booked"
   | "none";
 
@@ -37,9 +39,9 @@ export default function OverlapGrid({
   groups,
   mine,
   theirs,
-  myBookedMeetings,
+  myBooked,
   theirBooked,
-  pending,
+  betweenUs,
   highlightedSlots = [],
   now,
   preselectedSlot,
@@ -49,12 +51,12 @@ export default function OverlapGrid({
   const [error, setError] = useState<string | null>(null);
   const [confirm, setConfirm] = useState<string | null>(preselectedSlot ?? null);
   const [confirmingCancel, setConfirmingCancel] = useState<string | null>(null);
-  const [pendingMap, setPendingMap] = useState<Record<string, PendingRequest>>(
-    Object.fromEntries(pending.map((p) => [p.slotStart, p])),
+  const [betweenUsMap, setBetweenUsMap] = useState<Record<string, BetweenUsRequest>>(
+    Object.fromEntries(betweenUs.map((p) => [p.slotStart, p])),
   );
   const mineSet = new Set(mine);
   const theirsSet = new Set(theirs);
-  const myBookedSet = new Set(Object.keys(myBookedMeetings));
+  const myBookedSet = new Set(myBooked);
   const theirBookedSet = new Set(theirBooked);
   const nowMs = new Date(now).getTime();
 
@@ -75,9 +77,9 @@ export default function OverlapGrid({
     }
     const j = await res.json().catch(() => ({}));
     if (j.id) {
-      setPendingMap({
-        ...pendingMap,
-        [iso]: { requestId: j.id, slotStart: iso, direction: "outgoing" },
+      setBetweenUsMap({
+        ...betweenUsMap,
+        [iso]: { requestId: j.id, slotStart: iso, direction: "outgoing", status: "pending" },
       });
     }
     router.refresh();
@@ -101,9 +103,14 @@ export default function OverlapGrid({
       setError(j.error || "Failed");
       return;
     }
-    const next = { ...pendingMap };
-    delete next[iso];
-    setPendingMap(next);
+    const next = { ...betweenUsMap };
+    if (action === "accept") {
+      const existing = next[iso];
+      if (existing) next[iso] = { ...existing, status: "accepted" };
+    } else {
+      delete next[iso];
+    }
+    setBetweenUsMap(next);
     router.refresh();
   }
 
@@ -113,9 +120,12 @@ export default function OverlapGrid({
     const slotMs = new Date(iso).getTime();
     if (slotMs < nowMs) return null;
     if (slotMs < nowMs + bufferMs) return "booked";
+    const p = betweenUsMap[iso];
+    if (p) {
+      if (p.status === "accepted") return "confirmed";
+      return p.direction === "outgoing" ? "pendingOutgoing" : "pendingIncoming";
+    }
     if (myBookedSet.has(iso) || theirBookedSet.has(iso)) return "booked";
-    const p = pendingMap[iso];
-    if (p) return p.direction === "outgoing" ? "pendingOutgoing" : "pendingIncoming";
     if (mineSet.has(iso) && theirsSet.has(iso)) return "available";
     return "none";
   }
@@ -127,9 +137,9 @@ export default function OverlapGrid({
 
   const allSlots = Object.values(groups).flat();
   const totalAvailable = allSlots.filter((iso) => classify(iso) === "available").length;
-  const totalPending = allSlots.filter((iso) => {
+  const totalBetweenUs = allSlots.filter((iso) => {
     const s = classify(iso);
-    return s === "pendingOutgoing" || s === "pendingIncoming";
+    return s === "pendingOutgoing" || s === "pendingIncoming" || s === "confirmed";
   }).length;
 
   const base =
@@ -165,8 +175,44 @@ export default function OverlapGrid({
       );
     }
 
+    if (state === "confirmed") {
+      const p = betweenUsMap[iso]!;
+      return (
+        <div key={iso} className={`${base} border-emerald-200 bg-emerald-50 ${hlCls}`}>
+          <span className="text-xs text-emerald-700 w-16 shrink-0 font-semibold">{time}</span>
+          <div className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
+          <span className="text-sm font-medium text-emerald-900 truncate flex-1">
+            Meeting with {toUserName}
+          </span>
+          <div className="flex self-stretch shrink-0 w-[72px] border-l border-emerald-200">
+            <button
+              onClick={() => {
+                if (confirmingCancel === p.requestId) {
+                  setConfirmingCancel(null);
+                  act(p.requestId, "cancel", iso);
+                } else {
+                  setConfirmingCancel(p.requestId);
+                }
+              }}
+              onBlur={() => {
+                if (confirmingCancel === p.requestId) setConfirmingCancel(null);
+              }}
+              disabled={busy === p.requestId}
+              className={`self-stretch flex-1 text-xs font-medium ${
+                confirmingCancel === p.requestId
+                  ? "text-red-600 bg-red-50 font-semibold"
+                  : "text-red-400 hover:bg-red-50 hover:text-red-600"
+              }`}
+            >
+              {confirmingCancel === p.requestId ? "Sure?" : "Cancel"}
+            </button>
+          </div>
+        </div>
+      );
+    }
+
     if (state === "pendingOutgoing") {
-      const p = pendingMap[iso]!;
+      const p = betweenUsMap[iso]!;
       return (
         <div key={iso} className={`${base} border-amber-200 bg-amber-50 ${hlCls}`}>
           <span className="text-xs text-amber-700 w-16 shrink-0 font-semibold">{time}</span>
@@ -201,7 +247,7 @@ export default function OverlapGrid({
     }
 
     if (state === "pendingIncoming") {
-      const p = pendingMap[iso]!;
+      const p = betweenUsMap[iso]!;
       return (
         <div key={iso} className={`${base} border-amber-200 bg-amber-50 ${hlCls}`}>
           <span className="text-xs text-amber-700 w-16 shrink-0 font-semibold">{time}</span>
@@ -245,6 +291,10 @@ export default function OverlapGrid({
           both free
         </span>
         <span className="flex items-center gap-2">
+          <span className="inline-block w-3 h-3 bg-emerald-500 rounded" />
+          confirmed
+        </span>
+        <span className="flex items-center gap-2">
           <span className="inline-block w-3 h-3 bg-amber-500 rounded" />
           requested
         </span>
@@ -266,7 +316,7 @@ export default function OverlapGrid({
         </div>
       )}
 
-      {totalAvailable === 0 && totalPending === 0 && (
+      {totalAvailable === 0 && totalBetweenUs === 0 && (
         <div className="text-sm text-stone-500 bg-white rounded-md border border-stone-200 shadow-sm p-6 text-center">
           No overlapping availability right now.
           <br />

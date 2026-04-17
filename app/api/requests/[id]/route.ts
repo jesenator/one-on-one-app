@@ -49,6 +49,21 @@ export async function POST(
             where: { id },
             data: { status: "accepted" },
           });
+          await tx.meetingRequest.updateMany({
+            where: {
+              retreatId: mr.retreatId,
+              slotStart: mr.slotStart,
+              status: "pending",
+              id: { not: id },
+              OR: [
+                { fromUserId: mr.fromUserId },
+                { toUserId: mr.fromUserId },
+                { fromUserId: mr.toUserId },
+                { toUserId: mr.toUserId },
+              ],
+            },
+            data: { status: "cancelled" },
+          });
         });
       } catch (err: unknown) {
         const msg = err instanceof Error ? err.message : "Failed to accept.";
