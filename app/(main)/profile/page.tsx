@@ -87,31 +87,7 @@ export default async function ProfilePage() {
         </button>
       </form>
 
-      {admin && (
-        <a
-          href={`/admin/${s.retreatId}`}
-          className="group flex items-center justify-between overflow-hidden rounded-md border border-stone-200 bg-white shadow-sm p-5 hover:border-accent-200 hover:bg-accent-50/30"
-        >
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-md bg-accent-500 flex items-center justify-center">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="white" className="w-4 h-4">
-                <path fillRule="evenodd" d="M7.84 1.804A1 1 0 0 1 8.82 1h2.36a1 1 0 0 1 .98.804l.331 1.652a6.993 6.993 0 0 1 1.929 1.115l1.598-.54a1 1 0 0 1 1.186.447l1.18 2.044a1 1 0 0 1-.205 1.251l-1.267 1.113a7.047 7.047 0 0 1 0 2.228l1.267 1.113a1 1 0 0 1 .206 1.25l-1.18 2.045a1 1 0 0 1-1.187.447l-1.598-.54a6.993 6.993 0 0 1-1.929 1.115l-.33 1.652a1 1 0 0 1-.98.804H8.82a1 1 0 0 1-.98-.804l-.331-1.652a6.993 6.993 0 0 1-1.929-1.115l-1.598.54a1 1 0 0 1-1.186-.447l-1.18-2.044a1 1 0 0 1 .205-1.251l1.267-1.114a7.05 7.05 0 0 1 0-2.227L1.821 7.773a1 1 0 0 1-.206-1.25l1.18-2.045a1 1 0 0 1 1.187-.447l1.598.54A6.992 6.992 0 0 1 7.51 3.456l.33-1.652ZM10 13a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" clipRule="evenodd" />
-              </svg>
-            </div>
-            <span className="text-sm font-semibold text-stone-700 group-hover:text-accent-600">Admin panel</span>
-          </div>
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4 text-stone-300 group-hover:text-accent-500">
-            <path fillRule="evenodd" d="M8.22 5.22a.75.75 0 0 1 1.06 0l4.25 4.25a.75.75 0 0 1 0 1.06l-4.25 4.25a.75.75 0 0 1-1.06-1.06L11.94 10 8.22 6.28a.75.75 0 0 1 0-1.06Z" clipRule="evenodd" />
-          </svg>
-        </a>
-      )}
-
       <div className="flex flex-wrap gap-3">
-        <form action="/api/auth/logout" method="post">
-          <button className="text-sm text-stone-500 font-medium border border-stone-200 rounded-md px-4 py-2 hover:bg-stone-50">
-            Log out
-          </button>
-        </form>
         {retreats.length > 1 && (
           <SwitchRetreatModal
             action={switchRetreat}
@@ -122,6 +98,19 @@ export default async function ProfilePage() {
             }))}
           />
         )}
+        {admin && (
+          <a
+            href={`/admin/${s.retreatId}`}
+            className="text-sm text-stone-500 font-medium border border-stone-200 rounded-md px-4 py-2 hover:bg-stone-50"
+          >
+            Admin panel
+          </a>
+        )}
+        <form action="/api/auth/logout" method="post">
+          <button className="text-sm text-stone-500 font-medium border border-stone-200 rounded-md px-4 py-2 hover:bg-stone-50">
+            Log out
+          </button>
+        </form>
         <DeleteButton action={deleteAccount} />
       </div>
     </div>
