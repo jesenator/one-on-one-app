@@ -123,11 +123,13 @@ export default async function RetreatAdminPage({ params }: { params: Promise<{ r
   const retreat = await prisma.retreat.findUnique({ where: { id: retreatId } });
   if (!retreat) notFound();
 
+  const allSlots = generateSlots(retreat);
+  const totalSlotCount = allSlots.length;
   const slotGroupsIso = Object.fromEntries(
-    Object.entries(groupSlotsByDay(generateSlots(retreat))).map(([k, v]) => [k, v.map((d) => d.toISOString())])
+    Object.entries(groupSlotsByDay(allSlots)).map(([k, v]) => [k, v.map((d) => d.toISOString())])
   );
 
-  const [attendees, meetings, allRequests, admins] = await Promise.all([
+  const [attendees, meetings, allRequests, admins, availabilityCounts] = await Promise.all([
     prisma.retreatAttendance.findMany({
       where: { retreatId },
       include: { user: true },
@@ -149,23 +151,51 @@ export default async function RetreatAdminPage({ params }: { params: Promise<{ r
       where: { retreatId },
       include: { user: { select: { id: true, name: true, email: true } } },
     }),
+    prisma.availability.groupBy({
+      by: ["userId"],
+      where: { retreatId },
+      _count: { _all: true },
+    }),
   ]);
 
   const confirmed = allRequests.filter((r) => r.status === "accepted");
   const pending = allRequests.filter((r) => r.status === "pending");
+  const declined = allRequests.filter((r) => r.status === "declined");
+  const cancelled = allRequests.filter((r) => r.status === "cancelled");
   const uniquePairs = new Set(confirmed.map((r) => [r.fromUserId, r.toUserId].sort().join("-"))).size;
 
-  const meetingCounts: Record<string, { name: string; count: number }> = {};
-  for (const r of confirmed) {
-    for (const u of [
-      { id: r.fromUserId, name: r.from.name },
-      { id: r.toUserId, name: r.to.name },
-    ]) {
-      if (!meetingCounts[u.id]) meetingCounts[u.id] = { name: u.name || "?", count: 0 };
-      meetingCounts[u.id].count++;
+  const availabilityByUser: Record<string, number> = {};
+  for (const c of availabilityCounts) availabilityByUser[c.userId] = c._count._all;
+
+  type UserStats = { accepted: number; pendingOut: number; pendingIn: number; declined: number; availability: number };
+  const statsByUser: Record<string, UserStats> = {};
+  for (const a of attendees) {
+    statsByUser[a.userId] = { accepted: 0, pendingOut: 0, pendingIn: 0, declined: 0, availability: availabilityByUser[a.userId] || 0 };
+  }
+  for (const r of allRequests) {
+    if (r.status === "accepted") {
+      if (statsByUser[r.fromUserId]) statsByUser[r.fromUserId].accepted++;
+      if (statsByUser[r.toUserId]) statsByUser[r.toUserId].accepted++;
+    } else if (r.status === "pending") {
+      if (statsByUser[r.fromUserId]) statsByUser[r.fromUserId].pendingOut++;
+      if (statsByUser[r.toUserId]) statsByUser[r.toUserId].pendingIn++;
+    } else if (r.status === "declined") {
+      if (statsByUser[r.fromUserId]) statsByUser[r.fromUserId].declined++;
     }
   }
-  const leaderboard = Object.values(meetingCounts).sort((a, b) => b.count - a.count).slice(0, 10);
+
+  const leaderboard = attendees
+    .map((a) => ({ name: a.user.name || "?", count: statsByUser[a.userId]?.accepted || 0 }))
+    .filter((l) => l.count > 0)
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 10);
+
+  const customizedAvailability = attendees.filter((a) => {
+    const n = availabilityByUser[a.userId] || 0;
+    return n > 0 && n < totalSlotCount;
+  }).length;
+  const unmatched = attendees.filter((a) => (statsByUser[a.userId]?.accepted || 0) === 0).length;
+  const avgPerAttendee = attendees.length > 0 ? ((confirmed.length * 2) / attendees.length).toFixed(1) : "0";
 
   const futurePending = await prisma.meetingRequest.findMany({
     where: { retreatId, status: "pending", slotStart: { gte: nowInRetreatTz(retreat) } },
@@ -281,11 +311,27 @@ export default async function RetreatAdminPage({ params }: { params: Promise<{ r
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <Stat label="Attendees" value={attendees.length} color="accent" />
-          <Stat label="Confirmed" value={confirmed.length} color="emerald" />
-          <Stat label="Unique pairs" value={uniquePairs} color="accent" />
-          <Stat label="Pending" value={pending.length} color="amber" />
+        <div className="rounded-md border border-stone-200 bg-stone-200 shadow-sm overflow-hidden p-px">
+          <div className="grid grid-cols-3 sm:grid-cols-9 gap-px">
+            <MiniStat label="Attendees" value={attendees.length} />
+            <MiniStat
+              label="Edited availability"
+              value={customizedAvailability}
+              title="Attendees who turned off at least one slot. New visitors get every slot available by default until they change it."
+            />
+            <MiniStat
+              label="No meeting yet"
+              value={unmatched}
+              accent={unmatched > 0 ? "amber" : undefined}
+              title="Attendees with zero confirmed one-on-one meetings so far."
+            />
+            <MiniStat label="Avg per person" value={avgPerAttendee} title="Average number of confirmed meetings per attendee (each meeting counts for both people)." />
+            <MiniStat label="Confirmed" value={confirmed.length} accent="emerald" />
+            <MiniStat label="Unique pairs" value={uniquePairs} accent="emerald" title="Distinct pairs who have at least one confirmed meeting." />
+            <MiniStat label="Pending" value={pending.length} accent="amber" />
+            <MiniStat label="Declined" value={declined.length} accent="stone" title="Requests that were declined." />
+            <MiniStat label="Cancelled" value={cancelled.length} accent="stone" title="Meetings or requests that were cancelled." />
+          </div>
         </div>
 
         <SendRemindersButton action={sendRemindersForRetreat} pendingUsers={pendingUsersList} retreatId={retreat.id} retreatName={retreat.name} />
@@ -311,19 +357,33 @@ export default async function RetreatAdminPage({ params }: { params: Promise<{ r
         <div>
           <h3 className="text-sm font-bold text-stone-700 mb-3">Attendees ({attendees.length})</h3>
           <div className="overflow-hidden rounded-md border border-stone-200 bg-white shadow-sm divide-y divide-stone-100">
-            {attendees.map((a) => (
-              <div key={a.id} className="p-4 flex items-center justify-between text-sm">
-                <div>
-                  <div className="font-semibold">{a.user.name}</div>
-                  <div className="text-xs text-stone-400">{a.user.email}</div>
+            {attendees.map((a) => {
+              const st = statsByUser[a.userId] || { accepted: 0, pendingOut: 0, pendingIn: 0, declined: 0, availability: 0 };
+              return (
+                <div key={a.id} className="p-3 flex items-center justify-between gap-3 text-sm">
+                  <div className="min-w-0 flex-1">
+                    <div className="font-semibold truncate">{a.user.name}</div>
+                    <div className="text-xs text-stone-400 truncate">{a.user.email}</div>
+                  </div>
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <CountBadge title="Booked meetings" value={st.accepted} color="emerald" label="booked" />
+                    <CountBadge title="Pending outgoing (you sent)" value={st.pendingOut} color="blue" label="sent" />
+                    <CountBadge title="Pending incoming (awaiting their response)" value={st.pendingIn} color="amber" label="incoming" />
+                    <CountBadge
+                      title={`Slots open on their calendar (of ${totalSlotCount} total; default is all open).`}
+                      value={st.availability}
+                      color="stone"
+                      label="open"
+                    />
+                    <form action={removeUser}>
+                      <input type="hidden" name="userId" value={a.userId} />
+                      <input type="hidden" name="retreatId" value={retreatId} />
+                      <ConfirmButton message={`Remove ${a.user.name}? This will cancel all their meetings.`} label="Remove" className="text-xs text-red-500 font-medium border border-red-200 rounded-md px-2 py-1 hover:bg-red-50" />
+                    </form>
+                  </div>
                 </div>
-                <form action={removeUser}>
-                  <input type="hidden" name="userId" value={a.userId} />
-                  <input type="hidden" name="retreatId" value={retreatId} />
-                  <ConfirmButton message={`Remove ${a.user.name}? This will cancel all their meetings.`} label="Remove" className="text-xs text-red-500 font-medium border border-red-200 rounded-md px-2.5 py-1 hover:bg-red-50" />
-                </form>
-              </div>
-            ))}
+              );
+            })}
             {attendees.length === 0 && <div className="p-4 text-xs text-stone-400">No attendees yet.</div>}
           </div>
         </div>
@@ -355,13 +415,35 @@ export default async function RetreatAdminPage({ params }: { params: Promise<{ r
   );
 }
 
-function Stat({ label, value, color = "stone" }: { label: string; value: number; color?: string }) {
-  const colors: Record<string, string> = { accent: "bg-accent-500", emerald: "bg-emerald-500", amber: "bg-amber-500", stone: "bg-stone-500" };
+function MiniStat({ label, value, accent, title }: { label: string; value: number | string; accent?: string; title?: string }) {
+  const accents: Record<string, string> = {
+    emerald: "text-emerald-600",
+    amber: "text-amber-600",
+    accent: "text-accent-600",
+    stone: "text-stone-500",
+    red: "text-red-600",
+    blue: "text-blue-600",
+  };
   return (
-    <div className="rounded-md border border-stone-200 bg-white shadow-sm p-4 relative overflow-hidden">
-      <div className={`absolute top-0 left-0 right-0 h-0.5 ${colors[color] || colors.stone}`} />
-      <div className="text-2xl font-bold mt-1">{value}</div>
-      <div className="text-xs text-stone-400 font-medium">{label}</div>
+    <div className="px-3 py-2 min-h-13 bg-white" title={title}>
+      <div className={`text-lg font-bold leading-tight tabular-nums ${accent ? accents[accent] || "text-stone-900" : "text-stone-900"}`}>{value}</div>
+      <div className="text-[10px] text-stone-500 font-semibold uppercase tracking-wide mt-0.5 leading-snug">{label}</div>
     </div>
+  );
+}
+
+function CountBadge({ value, color, label, title }: { value: number; color: "emerald" | "blue" | "amber" | "stone"; label: string; title: string }) {
+  const colors = {
+    emerald: { on: "bg-emerald-100 text-emerald-700", off: "bg-stone-50 text-stone-300" },
+    blue: { on: "bg-blue-100 text-blue-700", off: "bg-stone-50 text-stone-300" },
+    amber: { on: "bg-amber-100 text-amber-700", off: "bg-stone-50 text-stone-300" },
+    stone: { on: "bg-stone-100 text-stone-600", off: "bg-stone-50 text-stone-300" },
+  };
+  const cls = value > 0 ? colors[color].on : colors[color].off;
+  return (
+    <span title={title} className={`text-xs font-semibold rounded-full px-2 py-0.5 tabular-nums ${cls}`}>
+      {value}
+      <span className="hidden sm:inline ml-1 font-medium opacity-80">{label}</span>
+    </span>
   );
 }
