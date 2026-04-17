@@ -3,6 +3,7 @@ import { getSession } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { isSuperAdmin, isRetreatAdmin } from "@/lib/config";
 import DeleteButton from "./DeleteButton";
+import SwitchRetreatModal from "./SwitchRetreatModal";
 
 async function deleteAccount() {
   "use server";
@@ -20,8 +21,9 @@ async function deleteAccount() {
   redirect("/login");
 }
 
-async function switchRetreat(retreatId: string) {
+async function switchRetreat(formData: FormData) {
   "use server";
+  const retreatId = String(formData.get("retreatId") || "");
   const session = await getSession();
   if (!session.userId) redirect("/login");
   const attendance = await prisma.retreatAttendance.findUnique({
@@ -85,40 +87,6 @@ export default async function ProfilePage() {
         </button>
       </form>
 
-      {retreats.length > 1 && (
-        <div className="overflow-hidden rounded-md border border-stone-200 bg-white shadow-sm p-6">
-          <h2 className="text-sm font-semibold text-stone-700 mb-3">Your retreats</h2>
-          <div className="space-y-2">
-            {retreats.map((a) => {
-              const isCurrent = a.retreatId === s.retreatId;
-              if (isCurrent) {
-                return (
-                  <div
-                    key={a.retreatId}
-                    className="flex items-center justify-between rounded-md border border-accent-200 bg-accent-50/40 px-4 py-3 text-sm font-medium text-accent-700"
-                  >
-                    <span>{a.retreat.name}</span>
-                    <span className="text-xs text-accent-500">Current</span>
-                  </div>
-                );
-              }
-              const action = switchRetreat.bind(null, a.retreatId);
-              return (
-                <form key={a.retreatId} action={action}>
-                  <button
-                    type="submit"
-                    className="w-full flex items-center justify-between rounded-md border border-stone-200 bg-stone-50/60 px-4 py-3 text-sm font-medium text-stone-700 hover:border-accent-300 hover:bg-accent-50 hover:text-accent-700"
-                  >
-                    <span>{a.retreat.name}</span>
-                    <span className="text-xs text-stone-400">Switch</span>
-                  </button>
-                </form>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
       {admin && (
         <a
           href={`/admin/${s.retreatId}`}
@@ -138,12 +106,22 @@ export default async function ProfilePage() {
         </a>
       )}
 
-      <div className="flex gap-3">
+      <div className="flex flex-wrap gap-3">
         <form action="/api/auth/logout" method="post">
           <button className="text-sm text-stone-500 font-medium border border-stone-200 rounded-md px-4 py-2 hover:bg-stone-50">
             Log out
           </button>
         </form>
+        {retreats.length > 1 && (
+          <SwitchRetreatModal
+            action={switchRetreat}
+            retreats={retreats.map((a) => ({
+              retreatId: a.retreatId,
+              name: a.retreat.name,
+              isCurrent: a.retreatId === s.retreatId,
+            }))}
+          />
+        )}
         <DeleteButton action={deleteAccount} />
       </div>
     </div>
