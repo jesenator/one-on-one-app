@@ -58,7 +58,7 @@ export default async function AttendeeProfile({
           { fromUserId: id, toUserId: s.userId },
         ],
       },
-      select: { slotStart: true },
+      select: { id: true, slotStart: true, fromUserId: true },
     }),
   ]);
 
@@ -96,7 +96,11 @@ export default async function AttendeeProfile({
         theirs={Array.from(theirs)}
         myBookedMeetings={myBookedMeetings}
         theirBooked={theirBooked.map((p) => p.slotStart.toISOString())}
-        pending={pending.map((p) => p.slotStart.toISOString())}
+        pending={pending.map((p) => ({
+          requestId: p.id,
+          slotStart: p.slotStart.toISOString(),
+          direction: p.fromUserId === s.userId ? "outgoing" : "incoming",
+        }))}
         highlightedSlots={retreat.highlightedSlots ?? []}
         now={nowInRetreatTz(retreat).toISOString()}
         preselectedSlot={preselectedSlot}

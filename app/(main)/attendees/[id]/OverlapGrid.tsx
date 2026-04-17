@@ -4,6 +4,12 @@ import { useRouter } from "next/navigation";
 import { formatSlotTime, formatSlotDay } from "@/lib/format";
 import SlotGrid from "../../SlotGrid";
 
+type PendingRequest = {
+  requestId: string;
+  slotStart: string;
+  direction: "incoming" | "outgoing";
+};
+
 type Props = {
   toUserId: string;
   toUserName: string;
@@ -12,13 +18,18 @@ type Props = {
   theirs: string[];
   myBookedMeetings: Record<string, string>;
   theirBooked: string[];
-  pending: string[];
+  pending: PendingRequest[];
   highlightedSlots?: string[];
   now: string;
   preselectedSlot?: string;
 };
 
-type SlotState = "available" | "pending" | "booked" | "none";
+type SlotState =
+  | "available"
+  | "pendingOutgoing"
+  | "pendingIncoming"
+  | "booked"
+  | "none";
 
 export default function OverlapGrid({
   toUserId,
@@ -37,11 +48,14 @@ export default function OverlapGrid({
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [confirm, setConfirm] = useState<string | null>(preselectedSlot ?? null);
+  const [confirmingCancel, setConfirmingCancel] = useState<string | null>(null);
+  const [pendingMap, setPendingMap] = useState<Record<string, PendingRequest>>(
+    Object.fromEntries(pending.map((p) => [p.slotStart, p])),
+  );
   const mineSet = new Set(mine);
   const theirsSet = new Set(theirs);
   const myBookedSet = new Set(Object.keys(myBookedMeetings));
   const theirBookedSet = new Set(theirBooked);
-  const [pendingSet, setPendingSet] = useState(new Set(pending));
   const nowMs = new Date(now).getTime();
 
   async function request(iso: string) {
@@ -59,7 +73,37 @@ export default function OverlapGrid({
       setError(j.error || "Failed");
       return;
     }
-    setPendingSet(new Set([...pendingSet, iso]));
+    const j = await res.json().catch(() => ({}));
+    if (j.id) {
+      setPendingMap({
+        ...pendingMap,
+        [iso]: { requestId: j.id, slotStart: iso, direction: "outgoing" },
+      });
+    }
+    router.refresh();
+  }
+
+  async function act(
+    requestId: string,
+    action: "accept" | "decline" | "cancel",
+    iso: string,
+  ) {
+    setBusy(requestId);
+    setError(null);
+    const res = await fetch(`/api/requests/${requestId}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action }),
+    });
+    setBusy(null);
+    if (!res.ok) {
+      const j = await res.json().catch(() => ({}));
+      setError(j.error || "Failed");
+      return;
+    }
+    const next = { ...pendingMap };
+    delete next[iso];
+    setPendingMap(next);
     router.refresh();
   }
 
@@ -70,7 +114,8 @@ export default function OverlapGrid({
     if (slotMs < nowMs) return null;
     if (slotMs < nowMs + bufferMs) return "booked";
     if (myBookedSet.has(iso) || theirBookedSet.has(iso)) return "booked";
-    if (pendingSet.has(iso)) return "pending";
+    const p = pendingMap[iso];
+    if (p) return p.direction === "outgoing" ? "pendingOutgoing" : "pendingIncoming";
     if (mineSet.has(iso) && theirsSet.has(iso)) return "available";
     return "none";
   }
@@ -82,7 +127,10 @@ export default function OverlapGrid({
 
   const allSlots = Object.values(groups).flat();
   const totalAvailable = allSlots.filter((iso) => classify(iso) === "available").length;
-  const totalPending = allSlots.filter((iso) => classify(iso) === "pending").length;
+  const totalPending = allSlots.filter((iso) => {
+    const s = classify(iso);
+    return s === "pendingOutgoing" || s === "pendingIncoming";
+  }).length;
 
   const base =
     "flex items-center gap-2 pl-3 pr-0 py-0 rounded-md border text-sm overflow-hidden min-h-[36px]";
@@ -117,12 +165,66 @@ export default function OverlapGrid({
       );
     }
 
-    if (state === "pending") {
+    if (state === "pendingOutgoing") {
+      const p = pendingMap[iso]!;
       return (
         <div key={iso} className={`${base} border-amber-200 bg-amber-50 ${hlCls}`}>
           <span className="text-xs text-amber-700 w-16 shrink-0 font-semibold">{time}</span>
           <div className="w-2 h-2 rounded-full bg-amber-500 shrink-0" />
           <span className="text-sm font-medium text-amber-800 truncate flex-1">Requested</span>
+          <span className="text-[11px] text-amber-700/70 shrink-0 italic">waiting</span>
+          <div className="flex self-stretch shrink-0 w-[72px] border-l border-amber-200">
+            <button
+              onClick={() => {
+                if (confirmingCancel === p.requestId) {
+                  setConfirmingCancel(null);
+                  act(p.requestId, "cancel", iso);
+                } else {
+                  setConfirmingCancel(p.requestId);
+                }
+              }}
+              onBlur={() => {
+                if (confirmingCancel === p.requestId) setConfirmingCancel(null);
+              }}
+              disabled={busy === p.requestId}
+              className={`self-stretch flex-1 text-xs font-medium ${
+                confirmingCancel === p.requestId
+                  ? "text-red-600 bg-red-50 font-semibold"
+                  : "text-amber-700/80 hover:bg-amber-100 hover:text-red-600"
+              }`}
+            >
+              {confirmingCancel === p.requestId ? "Sure?" : "Cancel"}
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    if (state === "pendingIncoming") {
+      const p = pendingMap[iso]!;
+      return (
+        <div key={iso} className={`${base} border-amber-200 bg-amber-50 ${hlCls}`}>
+          <span className="text-xs text-amber-700 w-16 shrink-0 font-semibold">{time}</span>
+          <div className="w-2 h-2 rounded-full bg-amber-500 shrink-0" />
+          <span className="text-sm font-medium text-amber-900 truncate flex-1">
+            {toUserName} requested
+          </span>
+          <div className="flex self-stretch shrink-0 w-[112px] border-l border-amber-200">
+            <button
+              onClick={() => act(p.requestId, "accept", iso)}
+              disabled={busy === p.requestId}
+              className="self-stretch flex-1 text-emerald-600 text-xs font-semibold hover:bg-emerald-50 disabled:opacity-50"
+            >
+              Accept
+            </button>
+            <button
+              onClick={() => act(p.requestId, "decline", iso)}
+              disabled={busy === p.requestId}
+              className="self-stretch flex-1 border-l border-amber-200 text-stone-400 text-xs font-medium hover:bg-stone-50 hover:text-stone-600 disabled:opacity-50"
+            >
+              Decline
+            </button>
+          </div>
         </div>
       );
     }
