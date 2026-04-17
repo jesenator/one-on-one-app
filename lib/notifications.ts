@@ -1,11 +1,11 @@
 import sgMail from "@sendgrid/mail";
 import { formatSlotDay, formatSlotTime } from "./format";
+import { appUrl } from "./url";
 
 if (process.env.SENDGRID_API_KEY) {
   sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 }
 
-const APP_URL = process.env.APP_URL || "http://localhost:3000";
 const FROM = process.env.SENDGRID_FROM_EMAIL;
 
 async function send(to: string, subject: string, text: string, html: string) {
@@ -27,7 +27,7 @@ function fmtSlot(d: Date) {
 
 export function notifyNewRequest(toEmail: string, fromName: string, slotStart: Date) {
   const when = fmtSlot(slotStart);
-  const link = `${APP_URL}/schedule`;
+  const link = `${appUrl()}/schedule`;
   const subject = `${fromName} wants to meet 1:1`;
   const text = `${fromName} requested a 1:1 with you on ${when}.\n\nAccept or decline: ${link}`;
   const html = `<p><strong>${fromName}</strong> requested a 1:1 with you on <strong>${when}</strong>.</p><p><a href="${link}">Open your schedule to respond</a></p>`;
@@ -36,7 +36,7 @@ export function notifyNewRequest(toEmail: string, fromName: string, slotStart: D
 
 export function notifyRequestAccepted(toEmail: string, accepterName: string, slotStart: Date) {
   const when = fmtSlot(slotStart);
-  const link = `${APP_URL}/schedule`;
+  const link = `${appUrl()}/schedule`;
   const subject = `${accepterName} accepted your 1:1`;
   const text = `${accepterName} accepted your 1:1 on ${when}.\n\nView your schedule: ${link}`;
   const html = `<p><strong>${accepterName}</strong> accepted your 1:1 on <strong>${when}</strong>.</p><p><a href="${link}">View your schedule</a></p>`;
@@ -45,7 +45,7 @@ export function notifyRequestAccepted(toEmail: string, accepterName: string, slo
 
 export function notifyRequestDeclined(toEmail: string, declinerName: string, slotStart: Date) {
   const when = fmtSlot(slotStart);
-  const link = `${APP_URL}/attendees`;
+  const link = `${appUrl()}/attendees`;
   const subject = `1:1 declined by ${declinerName}`;
   const text = `${declinerName} declined your 1:1 request for ${when}.\n\nFind another time: ${link}`;
   const html = `<p><strong>${declinerName}</strong> declined your 1:1 request for <strong>${when}</strong>.</p><p><a href="${link}">Browse attendees to find another time</a></p>`;
@@ -53,7 +53,7 @@ export function notifyRequestDeclined(toEmail: string, declinerName: string, slo
 }
 
 export function notifyPendingReminder(toEmail: string, userName: string, pendingCount: number, retreatName: string) {
-  const link = `${APP_URL}/schedule`;
+  const link = `${appUrl()}/schedule`;
   const subject = `You have ${pendingCount} pending one-on-one${pendingCount === 1 ? "" : "s"}`;
   const text = `Hi ${userName}, you have ${pendingCount} pending one-on-one request${pendingCount === 1 ? "" : "s"} for ${retreatName}.\n\nView your schedule to accept or decline: ${link}`;
   const html = `<p>Hi <strong>${userName}</strong>, you have <strong>${pendingCount}</strong> pending one-on-one request${pendingCount === 1 ? "" : "s"} for <strong>${retreatName}</strong>.</p><p><a href="${link}">Open your schedule to accept or decline</a></p>`;
@@ -62,7 +62,7 @@ export function notifyPendingReminder(toEmail: string, userName: string, pending
 
 export function notifyMeetingCancelled(toEmail: string, cancellerName: string, slotStart: Date) {
   const when = fmtSlot(slotStart);
-  const link = `${APP_URL}/schedule`;
+  const link = `${appUrl()}/schedule`;
   const subject = `1:1 cancelled by ${cancellerName}`;
   const text = `${cancellerName} cancelled your 1:1 on ${when}.\n\nView your schedule: ${link}`;
   const html = `<p><strong>${cancellerName}</strong> cancelled your 1:1 on <strong>${when}</strong>.</p><p><a href="${link}">View your schedule</a></p>`;

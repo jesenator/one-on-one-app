@@ -1,6 +1,7 @@
 import crypto from "crypto";
 import sgMail from "@sendgrid/mail";
 import { prisma } from "./prisma";
+import { appUrl } from "./url";
 
 if (process.env.SENDGRID_API_KEY) {
   sgMail.setApiKey(process.env.SENDGRID_API_KEY);
@@ -27,8 +28,7 @@ export async function createMagicLink(
       expiresAt: new Date(Date.now() + TOKEN_TTL_MS),
     },
   });
-  const base = process.env.APP_URL || "http://localhost:3000";
-  let url = `${base}/api/auth/callback?token=${token}`;
+  let url = `${appUrl()}/api/auth/callback?token=${token}`;
   if (retreat) url += `&retreat=${encodeURIComponent(retreat)}`;
   return url;
 }
