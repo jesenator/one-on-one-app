@@ -42,13 +42,15 @@ export default function LoginForm() {
       </div>
       <div className="bg-white rounded-lg border border-stone-200 shadow-sm p-8">
         {sent ? (
-          <div className="rounded-md bg-emerald-50 border border-emerald-200 p-5 text-sm text-emerald-800 text-center">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-8 h-8 mx-auto mb-2 text-emerald-500">
-              <path fillRule="evenodd" d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm3.857-9.809a.75.75 0 0 0-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 1 0-1.06 1.061l2.5 2.5a.75.75 0 0 0 1.137-.089l4-5.5Z" clipRule="evenodd" />
-            </svg>
-            Check your email for a login link.
-            <br />
-            <span className="text-emerald-600 text-xs">If you don&apos;t see it, check your spam folder.</span>
+          <div className="text-center py-2">
+            <h2 className="text-lg font-bold text-stone-900 mb-1.5">Check your email</h2>
+            <p className="text-sm text-stone-500">
+              Sign-in link sent to{" "}
+              <span className="font-medium text-stone-700">{email}</span>.
+            </p>
+            <p className="text-xs text-stone-400 mt-3">
+              Don&apos;t see it? Check your spam folder.
+            </p>
           </div>
         ) : (
           <form onSubmit={submit} className="space-y-4">
