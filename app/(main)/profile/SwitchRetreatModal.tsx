@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 
 type RetreatItem = {
   retreatId: string;
@@ -8,38 +9,51 @@ type RetreatItem = {
   isCurrent: boolean;
 };
 
-export default function SwitchRetreatModal({
-  retreats,
-  action,
-}: {
+type Props = {
   retreats: RetreatItem[];
   action: (formData: FormData) => Promise<void>;
-}) {
-  const [open, setOpen] = useState(false);
+  open?: boolean;
+  onClose?: () => void;
+};
+
+export default function SwitchRetreatModal({ retreats, action, open: controlledOpen, onClose }: Props) {
+  const isControlled = controlledOpen !== undefined;
+  const [internalOpen, setInternalOpen] = useState(false);
+  const open = isControlled ? controlledOpen : internalOpen;
+
+  const close = () => {
+    if (isControlled) onClose?.();
+    else setInternalOpen(false);
+  };
 
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setOpen(false);
+      if (e.key === "Escape") {
+        if (isControlled) onClose?.();
+        else setInternalOpen(false);
+      }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [open]);
+  }, [open, isControlled, onClose]);
 
   return (
     <>
-      <button
-        type="button"
-        onClick={() => setOpen(true)}
-        className="text-sm text-stone-500 font-medium border border-stone-200 rounded-md px-4 py-2 hover:bg-stone-50"
-      >
-        Switch retreats
-      </button>
+      {!isControlled && (
+        <button
+          type="button"
+          onClick={() => setInternalOpen(true)}
+          className="text-sm text-stone-500 font-medium border border-stone-200 rounded-md px-4 py-2 hover:bg-stone-50"
+        >
+          Switch retreats
+        </button>
+      )}
 
-      {open && (
+      {open && typeof document !== "undefined" && createPortal(
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-stone-900/40 p-4"
-          onClick={() => setOpen(false)}
+          onClick={close}
         >
           <div
             className="w-full max-w-md rounded-lg bg-white shadow-xl p-6"
@@ -52,7 +66,7 @@ export default function SwitchRetreatModal({
               </div>
               <button
                 type="button"
-                onClick={() => setOpen(false)}
+                onClick={close}
                 className="text-stone-400 hover:text-stone-600"
                 aria-label="Close"
               >
@@ -89,7 +103,8 @@ export default function SwitchRetreatModal({
               })}
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   );

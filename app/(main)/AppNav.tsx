@@ -2,6 +2,10 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import SwitchRetreatModal from "./profile/SwitchRetreatModal";
+import { switchRetreat } from "./actions";
+
+type RetreatItem = { retreatId: string; name: string; isCurrent: boolean };
 
 const TABS = [
   {
@@ -35,14 +39,17 @@ export default function AppNav({
   adminHref = "/admin",
   name,
   email,
+  retreats = [],
 }: {
   admin: boolean;
   adminHref?: string;
   name?: string;
   email?: string;
+  retreats?: RetreatItem[];
 }) {
   const path = usePathname();
   const [open, setOpen] = useState(false);
+  const [switchOpen, setSwitchOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -134,6 +141,19 @@ export default function AppNav({
               >
                 Profile settings
               </Link>
+              {retreats.length > 1 && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setOpen(false);
+                    setSwitchOpen(true);
+                  }}
+                  role="menuitem"
+                  className="block w-full text-left px-4 py-2 text-sm text-stone-700 hover:bg-stone-50"
+                >
+                  Switch retreats
+                </button>
+              )}
               <Link
                 href="/about"
                 onClick={() => setOpen(false)}
@@ -157,6 +177,14 @@ export default function AppNav({
           </div>
         )}
       </div>
+      {retreats.length > 1 && (
+        <SwitchRetreatModal
+          retreats={retreats}
+          action={switchRetreat}
+          open={switchOpen}
+          onClose={() => setSwitchOpen(false)}
+        />
+      )}
     </nav>
   );
 }

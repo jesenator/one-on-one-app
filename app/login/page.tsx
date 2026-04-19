@@ -11,12 +11,6 @@ export default function LoginPage() {
         </Suspense>
         <HostCTA />
       </main>
-      <footer className="py-4 text-center text-xs text-stone-400">
-        Found a bug? Suggest a feature? Contact{" "}
-        <a href="mailto:hello@pairwise.now" className="underline hover:text-stone-600">
-          hello@pairwise.now
-        </a>
-      </footer>
     </div>
   );
 }

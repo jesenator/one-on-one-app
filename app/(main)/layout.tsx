@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/session";
 import { getRetreat, isSuperAdmin, isRetreatAdmin } from "@/lib/config";
+import { prisma } from "@/lib/prisma";
 import AppNav from "./AppNav";
 
 export default async function AppLayout({
@@ -14,6 +15,16 @@ export default async function AppLayout({
   if (!session.retreatId) redirect("/no-retreat");
   const retreat = await getRetreat(session.retreatId);
   const admin = await isSuperAdmin(session.userId) || await isRetreatAdmin(session.userId, session.retreatId);
+  const attendances = await prisma.retreatAttendance.findMany({
+    where: { userId: session.userId, retreat: { active: true } },
+    orderBy: { createdAt: "desc" },
+    include: { retreat: true },
+  });
+  const retreats = attendances.map((a) => ({
+    retreatId: a.retreatId,
+    name: a.retreat.name,
+    isCurrent: a.retreatId === session.retreatId,
+  }));
 
   return (
     <div className="min-h-screen bg-stone-50 text-stone-900">
@@ -39,18 +50,13 @@ export default async function AppLayout({
                 adminHref={`/admin/${session.retreatId}`}
                 name={session.name}
                 email={session.email}
+                retreats={retreats}
               />
             </div>
           </div>
         </div>
       </header>
       <main className="mx-auto max-w-5xl px-6 py-8">{children}</main>
-      <footer className="mt-auto py-4 text-center text-xs text-stone-400">
-        Found a bug? Suggest a feature? Contact{" "}
-        <a href="mailto:hello@pairwise.now" className="underline hover:text-stone-600">
-          hello@pairwise.now
-        </a>
-      </footer>
     </div>
   );
 }

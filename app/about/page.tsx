@@ -66,9 +66,8 @@ export default async function AboutPage() {
         <section className="space-y-3 text-stone-700 leading-relaxed">
           <p>
             Pairwise helps people at retreats and other events find time for 1:1 conversations without the
-            back-and-forth. Sign in with a magic link, mark the half-hour slots you&apos;re free, browse other
-            attendees and see when your availability overlaps, then request a meeting in one tap. Accepted
-            meetings lock the slot for both people.
+            back-and-forth. Sign in with a magic link, mark the slots you&apos;re free, browse other attendees
+            and see when your availability overlaps, then request a meeting.
           </p>
           <p>
             Built by{" "}
@@ -135,14 +134,21 @@ export default async function AboutPage() {
             </li>
           </ul>
         </section>
-      </main>
 
-      <footer className="py-4 text-center text-xs text-stone-400">
-        Found a bug? Suggest a feature? Contact{" "}
-        <a href="mailto:hello@pairwise.now" className="underline hover:text-stone-600">
-          hello@pairwise.now
-        </a>
-      </footer>
+        <section className="space-y-3">
+          <h2 className="text-lg font-semibold text-stone-900">Feedback</h2>
+          <p className="text-stone-700 leading-relaxed">
+            Found a bug, have a feature request, or just want to chat? Email{" "}
+            <a
+              href="mailto:hello@pairwise.now"
+              className="text-accent-600 hover:text-accent-700 underline"
+            >
+              hello@pairwise.now
+            </a>
+            .
+          </p>
+        </section>
+      </main>
     </div>
   );
 }

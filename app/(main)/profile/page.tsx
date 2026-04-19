@@ -1,9 +1,9 @@
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
-import { isSuperAdmin, isRetreatAdmin } from "@/lib/config";
 import DeleteButton from "./DeleteButton";
 import SwitchRetreatModal from "./SwitchRetreatModal";
+import { switchRetreat } from "../actions";
 
 async function deleteAccount() {
   "use server";
@@ -19,20 +19,6 @@ async function deleteAccount() {
   await prisma.user.delete({ where: { id: session.userId } });
   session.destroy();
   redirect("/login");
-}
-
-async function switchRetreat(formData: FormData) {
-  "use server";
-  const retreatId = String(formData.get("retreatId") || "");
-  const session = await getSession();
-  if (!session.userId) redirect("/login");
-  const attendance = await prisma.retreatAttendance.findUnique({
-    where: { userId_retreatId: { userId: session.userId, retreatId } },
-  });
-  if (!attendance) redirect("/profile");
-  session.retreatId = retreatId;
-  await session.save();
-  redirect("/schedule");
 }
 
 async function updateName(formData: FormData) {
@@ -51,7 +37,6 @@ async function updateName(formData: FormData) {
 export default async function ProfilePage() {
   const s = await getSession();
   if (!s.userId) redirect("/login");
-  const admin = await isSuperAdmin(s.userId) || await isRetreatAdmin(s.userId, s.retreatId || "");
 
   const retreats = await prisma.retreatAttendance.findMany({
     where: { userId: s.userId, retreat: { active: true } },
@@ -60,7 +45,7 @@ export default async function ProfilePage() {
   });
 
   return (
-    <div className="space-y-5 max-w-lg">
+    <div className="space-y-5 max-w-lg mx-auto">
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-stone-900">Profile</h1>
         <p className="text-sm text-stone-400 mt-0.5">Manage your account settings</p>
@@ -97,14 +82,6 @@ export default async function ProfilePage() {
               isCurrent: a.retreatId === s.retreatId,
             }))}
           />
-        )}
-        {admin && (
-          <a
-            href={`/admin/${s.retreatId}`}
-            className="text-sm text-stone-500 font-medium border border-stone-200 rounded-md px-4 py-2 hover:bg-stone-50"
-          >
-            Admin panel
-          </a>
         )}
         <form action="/api/auth/logout" method="post">
           <button className="text-sm text-stone-500 font-medium border border-stone-200 rounded-md px-4 py-2 hover:bg-stone-50">
