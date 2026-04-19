@@ -1,12 +1,13 @@
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/session";
+import HostCTA from "../HostCTA";
 
 export default async function NoRetreatPage() {
   const s = await getSession();
   if (!s.userId) redirect("/login");
 
   return (
-    <main className="min-h-screen flex items-center justify-center px-6 py-16 bg-stone-50 text-stone-900">
+    <main className="min-h-screen flex flex-col items-center justify-center px-6 py-16 bg-stone-50 text-stone-900">
       <div className="w-full max-w-md bg-white rounded-lg border border-stone-200 shadow-sm p-10 text-center">
         <div className="w-12 h-12 mx-auto mb-5 rounded-md bg-accent-500 flex items-center justify-center">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="white" className="w-6 h-6">
@@ -26,6 +27,7 @@ export default async function NoRetreatPage() {
           </form>
         </div>
       </div>
+      <HostCTA />
     </main>
   );
 }

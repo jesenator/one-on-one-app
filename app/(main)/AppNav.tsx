@@ -1,6 +1,7 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
 
 const TABS = [
   {
@@ -21,19 +22,49 @@ const TABS = [
       </svg>
     ),
   },
-  {
-    href: "/profile",
-    label: "Profile",
-    icon: (
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
-        <path fillRule="evenodd" d="M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0Zm-5.5-2.5a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0ZM10 12a5.99 5.99 0 0 0-4.793 2.39A6.483 6.483 0 0 0 10 16.5a6.483 6.483 0 0 0 4.793-2.11A5.99 5.99 0 0 0 10 12Z" clipRule="evenodd" />
-      </svg>
-    ),
-  },
 ];
 
-export default function AppNav({ admin, adminHref = "/admin" }: { admin: boolean; adminHref?: string }) {
+const profileIcon = (
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
+    <path fillRule="evenodd" d="M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0Zm-5.5-2.5a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0ZM10 12a5.99 5.99 0 0 0-4.793 2.39A6.483 6.483 0 0 0 10 16.5a6.483 6.483 0 0 0 4.793-2.11A5.99 5.99 0 0 0 10 12Z" clipRule="evenodd" />
+  </svg>
+);
+
+export default function AppNav({
+  admin,
+  adminHref = "/admin",
+  name,
+  email,
+}: {
+  admin: boolean;
+  adminHref?: string;
+  name?: string;
+  email?: string;
+}) {
   const path = usePathname();
+  const [open, setOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const onClick = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpen(false);
+    };
+    document.addEventListener("mousedown", onClick);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onClick);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [open]);
+
+  const accountActive = path.startsWith("/profile") || path.startsWith("/about");
+
   return (
     <nav className="flex gap-1 text-sm">
       {TABS.map((t) => {
@@ -68,7 +99,64 @@ export default function AppNav({ admin, adminHref = "/admin" }: { admin: boolean
           <span className="hidden sm:inline">Admin</span>
         </Link>
       )}
+      <div ref={menuRef} className="relative">
+        <button
+          type="button"
+          onClick={() => setOpen((o) => !o)}
+          aria-haspopup="menu"
+          aria-expanded={open}
+          aria-label="Account menu"
+          className={`flex items-center rounded-md px-3 py-1.5 font-medium ${
+            accountActive || open
+              ? "bg-accent-50 text-accent-600"
+              : "text-stone-500 hover:text-stone-700 hover:bg-stone-100"
+          }`}
+        >
+          <span className="flex h-5 items-center">{profileIcon}</span>
+        </button>
+        {open && (
+          <div
+            role="menu"
+            className="absolute right-0 mt-2 w-56 rounded-md border border-stone-200 bg-white shadow-lg overflow-hidden z-50"
+          >
+            {(name || email) && (
+              <div className="px-4 py-3 border-b border-stone-200">
+                {name && <div className="text-sm font-medium text-stone-900 truncate">{name}</div>}
+                {email && <div className="text-xs text-stone-400 truncate">{email}</div>}
+              </div>
+            )}
+            <div className="py-1">
+              <Link
+                href="/profile"
+                onClick={() => setOpen(false)}
+                role="menuitem"
+                className="block px-4 py-2 text-sm text-stone-700 hover:bg-stone-50"
+              >
+                Profile settings
+              </Link>
+              <Link
+                href="/about"
+                onClick={() => setOpen(false)}
+                role="menuitem"
+                className="block px-4 py-2 text-sm text-stone-700 hover:bg-stone-50"
+              >
+                About
+              </Link>
+            </div>
+            <div className="border-t border-stone-200 py-1">
+              <form action="/api/auth/logout" method="post">
+                <button
+                  type="submit"
+                  role="menuitem"
+                  className="block w-full text-left px-4 py-2 text-sm text-stone-700 hover:bg-stone-50"
+                >
+                  Log out
+                </button>
+              </form>
+            </div>
+          </div>
+        )}
+      </div>
     </nav>
   );
 }
-

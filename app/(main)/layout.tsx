@@ -34,7 +34,12 @@ export default async function AppLayout({
               </div>
             </Link>
             <div className="shrink-0">
-              <AppNav admin={admin} adminHref={`/admin/${session.retreatId}`} />
+              <AppNav
+                admin={admin}
+                adminHref={`/admin/${session.retreatId}`}
+                name={session.name}
+                email={session.email}
+              />
             </div>
           </div>
         </div>
