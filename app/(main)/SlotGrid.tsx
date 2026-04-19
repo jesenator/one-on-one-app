@@ -37,7 +37,8 @@ function DayColumn({
   filterSlot?: SlotGridProps["filterSlot"];
   emptyDayMessage?: string;
 }) {
-  const filtered = filterSlot ? slots.filter(filterSlot) : slots;
+  const safeSlots = slots ?? [];
+  const filtered = filterSlot ? safeSlots.filter(filterSlot) : safeSlots;
 
   if (filtered.length === 0) {
     return emptyDayMessage
