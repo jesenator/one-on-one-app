@@ -99,7 +99,7 @@ export default async function AboutPage() {
         </section>
 
         <section className="space-y-3">
-          <h2 className="text-lg font-semibold text-stone-900">Want to host a retreat?</h2>
+          <h2 className="text-lg font-semibold text-stone-900">Want to use Pairwise?</h2>
           <p className="text-stone-700 leading-relaxed">
             Pairwise is shared with organizers on a case-by-case basis. If you&apos;re running a retreat or
             event and want to use it, email{" "}

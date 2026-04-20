@@ -7,9 +7,9 @@ export default function HostCTA() {
       <a href="mailto:hello@pairwise.now" className="text-accent-600 hover:text-accent-700 underline">
         hello@pairwise.now
       </a>{" "}
-      and{" "}
+      and learn more at{ " "}
       <Link href="/about" className="text-accent-600 hover:text-accent-700 underline">
-        learn more
+        pairwise.now/about
       </Link>
       .
     </div>
