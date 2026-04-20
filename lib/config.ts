@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { prisma } from "./prisma";
 import type { Retreat } from "@prisma/client";
 
@@ -10,6 +11,23 @@ export async function getActiveRetreats(): Promise<RetreatConfig[]> {
 export async function getRetreat(id: string): Promise<RetreatConfig | null> {
   return prisma.retreat.findUnique({ where: { id } });
 }
+
+export type UserRetreatItem = { retreatId: string; name: string; isCurrent: boolean };
+
+export const getUserRetreats = cache(
+  async (userId: string, currentRetreatId?: string | null): Promise<UserRetreatItem[]> => {
+    const attendances = await prisma.retreatAttendance.findMany({
+      where: { userId, retreat: { active: true } },
+      orderBy: { createdAt: "desc" },
+      include: { retreat: true },
+    });
+    return attendances.map((a) => ({
+      retreatId: a.retreatId,
+      name: a.retreat.name,
+      isCurrent: a.retreatId === currentRetreatId,
+    }));
+  }
+);
 
 export async function isSuperAdmin(userId: string): Promise<boolean> {
   const user = await prisma.user.findUnique({ where: { id: userId }, select: { superAdmin: true } });

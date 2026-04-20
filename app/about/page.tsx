@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { getSession } from "@/lib/session";
-import { getRetreat, isSuperAdmin, isRetreatAdmin } from "@/lib/config";
+import { getRetreat, isSuperAdmin, isRetreatAdmin, getUserRetreats } from "@/lib/config";
 import AppNav from "../(main)/AppNav";
 import BrandMark from "../BrandMark";
 
@@ -17,6 +17,7 @@ export default async function AboutPage() {
     loggedIn &&
     ((await isSuperAdmin(session.userId!)) ||
       (!!session.retreatId && (await isRetreatAdmin(session.userId!, session.retreatId))));
+  const retreats = loggedIn ? await getUserRetreats(session.userId!, session.retreatId) : [];
 
   return (
     <div className="min-h-screen flex flex-col bg-stone-50 text-stone-900">
@@ -40,6 +41,7 @@ export default async function AboutPage() {
                   adminHref={session.retreatId ? `/admin/${session.retreatId}` : "/admin"}
                   name={session.name}
                   email={session.email}
+                  retreats={retreats}
                 />
               ) : (
                 <Link

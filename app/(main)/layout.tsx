@@ -1,8 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/session";
-import { getRetreat, isSuperAdmin, isRetreatAdmin } from "@/lib/config";
-import { prisma } from "@/lib/prisma";
+import { getRetreat, isSuperAdmin, isRetreatAdmin, getUserRetreats } from "@/lib/config";
 import AppNav from "./AppNav";
 import BrandMark from "../BrandMark";
 
@@ -16,16 +15,7 @@ export default async function AppLayout({
   if (!session.retreatId) redirect("/no-retreat");
   const retreat = await getRetreat(session.retreatId);
   const admin = await isSuperAdmin(session.userId) || await isRetreatAdmin(session.userId, session.retreatId);
-  const attendances = await prisma.retreatAttendance.findMany({
-    where: { userId: session.userId, retreat: { active: true } },
-    orderBy: { createdAt: "desc" },
-    include: { retreat: true },
-  });
-  const retreats = attendances.map((a) => ({
-    retreatId: a.retreatId,
-    name: a.retreat.name,
-    isCurrent: a.retreatId === session.retreatId,
-  }));
+  const retreats = await getUserRetreats(session.userId, session.retreatId);
 
   return (
     <div className="min-h-screen bg-stone-50 text-stone-900">

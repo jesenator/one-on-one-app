@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
+import { getUserRetreats } from "@/lib/config";
 import DeleteButton from "./DeleteButton";
 import SwitchRetreatModal from "./SwitchRetreatModal";
 import { switchRetreat } from "../actions";
@@ -38,11 +39,7 @@ export default async function ProfilePage() {
   const s = await getSession();
   if (!s.userId) redirect("/login");
 
-  const retreats = await prisma.retreatAttendance.findMany({
-    where: { userId: s.userId, retreat: { active: true } },
-    orderBy: { createdAt: "desc" },
-    include: { retreat: true },
-  });
+  const retreats = await getUserRetreats(s.userId, s.retreatId);
 
   return (
     <div className="space-y-5 max-w-lg mx-auto">
@@ -74,14 +71,7 @@ export default async function ProfilePage() {
 
       <div className="flex flex-wrap gap-3">
         {retreats.length > 1 && (
-          <SwitchRetreatModal
-            action={switchRetreat}
-            retreats={retreats.map((a) => ({
-              retreatId: a.retreatId,
-              name: a.retreat.name,
-              isCurrent: a.retreatId === s.retreatId,
-            }))}
-          />
+          <SwitchRetreatModal action={switchRetreat} retreats={retreats} />
         )}
         <form action="/api/auth/logout" method="post">
           <button className="inline-flex items-center gap-2 text-sm text-stone-500 font-medium border border-stone-200 rounded-md px-4 py-2 hover:bg-stone-50">
