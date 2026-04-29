@@ -1,15 +1,17 @@
 import type { NextConfig } from "next";
 
-const shortlinks: Record<string, string> = {
-  "/wc": "/join/west-coast-ea-2026",
-  "/mw": "/join/midwest-ea-2026",
-  "/ne": "/join/northeast-ea-2026",
-};
+const raw = process.env.REDIRECTS || "{}";
+let shortlinks: Record<string, string> = {};
+try {
+  shortlinks = JSON.parse(raw);
+} catch {
+  shortlinks = {};
+}
 
 const nextConfig: NextConfig = {
   async redirects() {
-    return Object.entries(shortlinks).map(([source, destination]) => ({
-      source,
+    return Object.entries(shortlinks).map(([key, destination]) => ({
+      source: key.startsWith("/") ? key : `/${key}`,
       destination,
       permanent: false,
     }));

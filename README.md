@@ -34,6 +34,7 @@ See `.env.example`. All are required for production:
 | `SENDGRID_API_KEY` | SendGrid API key |
 | `SENDGRID_FROM_EMAIL` | Verified sender address in SendGrid |
 | `APP_URL` | Public URL (e.g. `https://www.pairwise.now`) |
+| `REDIRECTS` | Optional JSON map of shortlinks, e.g. `{"wc":"/join/<retreat-id>"}` |
 
 ## Configuring retreats
 
@@ -43,7 +44,7 @@ The first super admin is bootstrapped via the initial migration (see `prisma/mig
 
 ### Shortlinks
 
-`next.config.ts` contains a `shortlinks` map that redirects short paths (e.g. `/wc`) to the full join URL (`/join/west-coast-ea-2026`). Add new entries there and restart the dev server.
+The `REDIRECTS` env var is a JSON map of short paths to destinations, e.g. `REDIRECTS='{"wc":"/join/<retreat-id>"}'`. Add or remove entries by editing the env var and restarting the server. Keys may be written with or without a leading slash.
 
 ## Deploy to Vercel
 
