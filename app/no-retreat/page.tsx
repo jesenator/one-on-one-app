@@ -15,7 +15,7 @@ export default async function NoRetreatPage() {
         </div>
         <h1 className="text-2xl font-bold mb-2 text-stone-900">Pairwise</h1>
         <p className="text-sm text-stone-500 leading-relaxed">
-          Use the join link shared by your retreat organizer to get started.
+          You&apos;re not currently part of an active retreat. Use the join link shared by your retreat organizer to get started.
         </p>
         <div className="mt-8">
           <form action="/api/auth/logout" method="post">

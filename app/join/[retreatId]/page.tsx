@@ -1,6 +1,6 @@
-import { redirect, notFound } from "next/navigation";
+import { redirect } from "next/navigation";
 import { getSession } from "@/lib/session";
-import { getRetreat } from "@/lib/config";
+import { getRetreat, isRetreatJoinable } from "@/lib/config";
 import { prisma } from "@/lib/prisma";
 import AutoSubmit from "./AutoSubmit";
 
@@ -8,6 +8,12 @@ async function joinOrSwitch(retreatId: string) {
   "use server";
   const session = await getSession();
   if (!session.userId) redirect(`/login?retreat=${retreatId}`);
+  const retreat = await getRetreat(retreatId);
+  if (!retreat) redirect("/no-retreat");
+  const existing = await prisma.retreatAttendance.findUnique({
+    where: { userId_retreatId: { userId: session.userId, retreatId } },
+  });
+  if (!existing && !isRetreatJoinable(retreat)) redirect("/no-retreat");
   await prisma.retreatAttendance.upsert({
     where: { userId_retreatId: { userId: session.userId, retreatId } },
     update: {},
@@ -24,17 +30,20 @@ export default async function RetreatJoinPage({
   params: Promise<{ retreatId: string }>;
 }) {
   const { retreatId } = await params;
-  const retreat = await getRetreat(retreatId);
-  if (!retreat || !retreat.active) notFound();
 
   const session = await getSession();
   if (!session.userId) {
     redirect(`/login?retreat=${retreatId}`);
   }
 
+  const retreat = await getRetreat(retreatId);
+  if (!retreat) redirect("/no-retreat");
+
   const existing = await prisma.retreatAttendance.findUnique({
     where: { userId_retreatId: { userId: session.userId, retreatId } },
   });
+
+  if (!existing && !isRetreatJoinable(retreat)) redirect("/no-retreat");
 
   const action = joinOrSwitch.bind(null, retreatId);
 

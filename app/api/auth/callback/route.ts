@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { consumeMagicLink } from "@/lib/auth";
 import { getSession } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
+import { isRetreatJoinable } from "@/lib/config";
 
 export async function GET(req: Request) {
   const url = new URL(req.url);
@@ -21,15 +22,20 @@ export async function GET(req: Request) {
   const retreatId = url.searchParams.get("retreat");
   if (retreatId) {
     const retreat = await prisma.retreat.findUnique({ where: { id: retreatId } });
-    if (retreat?.active) {
-      await prisma.retreatAttendance.upsert({
+    if (retreat) {
+      const existing = await prisma.retreatAttendance.findUnique({
         where: { userId_retreatId: { userId: user.id, retreatId } },
-        update: {},
-        create: { userId: user.id, retreatId },
       });
-      session.retreatId = retreatId;
-      await session.save();
-      return NextResponse.redirect(new URL("/schedule", url));
+      if (existing || isRetreatJoinable(retreat)) {
+        await prisma.retreatAttendance.upsert({
+          where: { userId_retreatId: { userId: user.id, retreatId } },
+          update: {},
+          create: { userId: user.id, retreatId },
+        });
+        session.retreatId = retreatId;
+        await session.save();
+        return NextResponse.redirect(new URL("/schedule", url));
+      }
     }
   }
 

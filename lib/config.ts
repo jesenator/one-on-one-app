@@ -64,6 +64,12 @@ export function generateSlots(retreat: RetreatConfig): Date[] {
   return slots;
 }
 
+export function isRetreatJoinable(retreat: RetreatConfig): boolean {
+  if (!retreat.active) return false;
+  const end = new Date(retreat.slotsEnd + ":00Z");
+  return end > nowInRetreatTz(retreat);
+}
+
 export function nowInRetreatTz(retreat: RetreatConfig): Date {
   const parts = new Intl.DateTimeFormat("en-US", {
     timeZone: retreat.timezone,
