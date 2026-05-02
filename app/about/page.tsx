@@ -114,14 +114,14 @@ export default async function AboutPage() {
             .
           </p>
           <p>
-            Read about Pairwise in use at the{" "}
+            Read about Pairwise in use at the first West Coast EA retreat{" "}
             <a
               href="https://forum.effectivealtruism.org/posts/KbSrfqp6u36goHtDG/we-ran-the-first-west-coast-ea-retreat-a-retrospective#A_new_one_on_one_scheduling_app__Pairwise"
               target="_blank"
               rel="noopener noreferrer"
               className="text-accent-600 hover:text-accent-700 underline"
             >
-              first West Coast EA retreat retrospective
+              here
             </a>
             .
           </p>
