@@ -1,18 +1,28 @@
 type Size = "sm" | "lg";
 
-const SIZES: Record<Size, { box: string; icon: string }> = {
-  sm: { box: "w-8 h-8 rounded-md", icon: "w-4 h-4" },
-  lg: { box: "w-12 h-12 rounded-md", icon: "w-6 h-6" },
+const SIZES: Record<Size, string> = {
+  sm: "w-8 h-8",
+  lg: "w-12 h-12",
 };
 
 export default function BrandMark({ size = "sm" }: { size?: Size }) {
-  const s = SIZES[size];
   return (
-    <div className={`shrink-0 ${s.box} bg-accent-500 flex items-center justify-center`}>
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="white" className={s.icon}>
-        <path d="M5.25 12a.75.75 0 0 1 .75-.75h.01a.75.75 0 0 1 .75.75v.01a.75.75 0 0 1-.75.75H6a.75.75 0 0 1-.75-.75V12ZM6 13.25a.75.75 0 0 0-.75.75v.01c0 .414.336.75.75.75h.01a.75.75 0 0 0 .75-.75V14a.75.75 0 0 0-.75-.75H6ZM7.25 12a.75.75 0 0 1 .75-.75h.01a.75.75 0 0 1 .75.75v.01a.75.75 0 0 1-.75.75H8a.75.75 0 0 1-.75-.75V12ZM8 13.25a.75.75 0 0 0-.75.75v.01c0 .414.336.75.75.75h.01a.75.75 0 0 0 .75-.75V14a.75.75 0 0 0-.75-.75H8ZM9.25 10a.75.75 0 0 1 .75-.75h.01a.75.75 0 0 1 .75.75v.01a.75.75 0 0 1-.75.75H10a.75.75 0 0 1-.75-.75V10ZM10 11.25a.75.75 0 0 0-.75.75v.01c0 .414.336.75.75.75h.01a.75.75 0 0 0 .75-.75V12a.75.75 0 0 0-.75-.75H10ZM9.25 14a.75.75 0 0 1 .75-.75h.01a.75.75 0 0 1 .75.75v.01a.75.75 0 0 1-.75.75H10a.75.75 0 0 1-.75-.75V14ZM12 9.25a.75.75 0 0 0-.75.75v.01c0 .414.336.75.75.75h.01a.75.75 0 0 0 .75-.75V10a.75.75 0 0 0-.75-.75H12ZM11.25 12a.75.75 0 0 1 .75-.75h.01a.75.75 0 0 1 .75.75v.01a.75.75 0 0 1-.75.75H12a.75.75 0 0 1-.75-.75V12ZM12 13.25a.75.75 0 0 0-.75.75v.01c0 .414.336.75.75.75h.01a.75.75 0 0 0 .75-.75V14a.75.75 0 0 0-.75-.75H12ZM13.25 10a.75.75 0 0 1 .75-.75h.01a.75.75 0 0 1 .75.75v.01a.75.75 0 0 1-.75.75H14a.75.75 0 0 1-.75-.75V10ZM14 11.25a.75.75 0 0 0-.75.75v.01c0 .414.336.75.75.75h.01a.75.75 0 0 0 .75-.75V12a.75.75 0 0 0-.75-.75H14Z" />
-        <path fillRule="evenodd" d="M5.75 2a.75.75 0 0 1 .75.75V4h7V2.75a.75.75 0 0 1 1.5 0V4h.25A2.75 2.75 0 0 1 18 6.75v8.5A2.75 2.75 0 0 1 15.25 18H4.75A2.75 2.75 0 0 1 2 15.25v-8.5A2.75 2.75 0 0 1 4.75 4H5V2.75A.75.75 0 0 1 5.75 2Zm-1 5.5c-.69 0-1.25.56-1.25 1.25v6.5c0 .69.56 1.25 1.25 1.25h10.5c.69 0 1.25-.56 1.25-1.25v-6.5c0-.69-.56-1.25-1.25-1.25H4.75Z" clipRule="evenodd" />
-      </svg>
-    </div>
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 100 100"
+      aria-hidden="true"
+      className={`shrink-0 ${SIZES[size]}`}
+    >
+      <rect x="0" y="0" width="100" height="100" rx="22" fill="#009BA3" />
+      <g>
+        <rect x="14" y="22" width="72" height="64" rx="9" fill="none" stroke="#ffffff" strokeWidth="5" />
+        <line x1="14" y1="36" x2="86" y2="36" stroke="#ffffff" strokeWidth="5" />
+        <line x1="28" y1="15" x2="28" y2="29" stroke="#ffffff" strokeWidth="5" strokeLinecap="round" />
+        <line x1="72" y1="15" x2="72" y2="29" stroke="#ffffff" strokeWidth="5" strokeLinecap="round" />
+      </g>
+      <circle cx="42" cy="62" r="14" fill="#000000" />
+      <circle cx="58" cy="62" r="14" fill="#ffffff" />
+      <circle cx="42" cy="62" r="14" fill="none" stroke="#000000" strokeWidth="1.2" />
+    </svg>
   );
 }
