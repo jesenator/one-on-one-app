@@ -60,6 +60,15 @@ export function notifyPendingReminder(toEmail: string, userName: string, pending
   return send(toEmail, subject, text, html);
 }
 
+export function notifyAdminScheduled(toEmail: string, adminName: string, otherName: string, slotStart: Date) {
+  const when = fmtSlot(slotStart);
+  const link = `${appUrl()}/schedule`;
+  const subject = `1:1 scheduled with ${otherName}`;
+  const text = `${adminName} (admin) scheduled a 1:1 between you and ${otherName} on ${when}.\n\nView your schedule: ${link}`;
+  const html = `<p><strong>${adminName}</strong> (admin) scheduled a 1:1 between you and <strong>${otherName}</strong> on <strong>${when}</strong>.</p><p><a href="${link}">View your schedule</a></p>`;
+  send(toEmail, subject, text, html).catch(() => {});
+}
+
 export function notifyMeetingCancelled(toEmail: string, cancellerName: string, slotStart: Date) {
   const when = fmtSlot(slotStart);
   const link = `${appUrl()}/schedule`;
