@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { isSuperAdmin, isValidTimezone } from "@/lib/config";
 import ConfirmButton from "./ConfirmButton";
 import TimezoneSelect from "./TimezoneSelect";
+import SubmitButton from "../SubmitButton";
 
 export const metadata = { title: "App Admin" };
 
@@ -136,9 +137,9 @@ export default async function AdminPage() {
                 <input name="granularityMinutes" type="number" defaultValue={30} min={5} className="w-full border border-stone-200 rounded-md px-3 py-2 text-sm bg-stone-50/50 focus:outline-none focus:ring-2 focus:ring-accent-500/20 focus:border-accent-500" />
               </div>
             </div>
-            <button className="bg-accent-500 text-white rounded-md px-5 py-2.5 text-sm font-semibold hover:bg-accent-600">
+            <SubmitButton pendingChildren="Creating…" successChildren="Created">
               Create retreat
-            </button>
+            </SubmitButton>
           </form>
         </div>
 
@@ -166,9 +167,13 @@ export default async function AdminPage() {
           </div>
           <form action={addSuperAdmin} className="mt-3 flex gap-2">
             <input name="email" type="email" required placeholder="Email address" className="flex-1 border border-stone-200 rounded-md px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-accent-500/20 focus:border-accent-500" />
-            <button className="bg-accent-500 text-white rounded-md px-4 py-2 text-sm font-semibold hover:bg-accent-600">
+            <SubmitButton
+              className="bg-accent-500 text-white rounded-md px-4 py-2 text-sm font-semibold hover:bg-accent-600 disabled:opacity-60"
+              pendingChildren="Adding…"
+              successChildren="Added"
+            >
               Add
-            </button>
+            </SubmitButton>
           </form>
         </div>
     </div>

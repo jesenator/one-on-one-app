@@ -1,5 +1,7 @@
 "use client";
 
+import SubmitButton from "../../SubmitButton";
+
 type Initial = {
   slotsStart: string;
   slotsEnd: string;
@@ -11,10 +13,10 @@ type Initial = {
 
 export default function SettingsSaveButton({ initial }: { initial: Initial }) {
   return (
-    <button
-      type="submit"
-      className="bg-accent-500 text-white rounded-md px-5 py-2.5 text-sm font-semibold hover:bg-accent-600"
-      onClick={(e) => {
+    <SubmitButton
+      pendingChildren="Saving…"
+      successChildren="Saved"
+      onClickGuard={(e) => {
         const form = e.currentTarget.form;
         if (!form) return;
         const get = (n: string) =>
@@ -30,10 +32,10 @@ export default function SettingsSaveButton({ initial }: { initial: Initial }) {
         const ok = window.confirm(
           `You're changing: ${changes.join(", ")}.\n\nThese fields define the slot grid. Changing them after people have set availability or booked meetings may orphan their data. Continue?`,
         );
-        if (!ok) e.preventDefault();
+        if (!ok) return false;
       }}
     >
       Save settings
-    </button>
+    </SubmitButton>
   );
 }

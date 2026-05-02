@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { getUserRetreats } from "@/lib/config";
 import DeleteButton from "./DeleteButton";
 import SwitchRetreatModal from "./SwitchRetreatModal";
+import SubmitButton from "../SubmitButton";
 import { switchRetreat } from "../actions";
 
 async function deleteAccount() {
@@ -64,9 +65,7 @@ export default async function ProfilePage() {
             className="w-full border border-stone-200 rounded-md px-3.5 py-2.5 text-sm bg-stone-100/50 text-stone-400"
           />
         </div>
-        <button className="bg-accent-500 text-white rounded-md px-5 py-2.5 text-sm font-semibold hover:bg-accent-600">
-          Save changes
-        </button>
+        <SubmitButton pendingChildren="Saving…">Save changes</SubmitButton>
       </form>
 
       <div className="flex flex-wrap gap-3">

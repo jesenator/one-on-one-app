@@ -3,6 +3,7 @@ import { getSession } from "@/lib/session";
 import { getRetreat, isRetreatJoinable } from "@/lib/config";
 import { prisma } from "@/lib/prisma";
 import AutoSubmit from "./AutoSubmit";
+import SubmitButton from "../../(main)/SubmitButton";
 
 async function joinOrSwitch(retreatId: string) {
   "use server";
@@ -62,12 +63,13 @@ export default async function RetreatJoinPage({
         <h1 className="text-2xl font-bold text-stone-900 mb-2">{retreat.name}</h1>
         <p className="text-sm text-stone-400 mb-6">Join this retreat to start scheduling 1:1s</p>
         <form action={action}>
-          <button
-            type="submit"
-            className="px-8 py-3 text-sm font-semibold bg-accent-500 text-white rounded-md hover:bg-accent-600"
+          <SubmitButton
+            className="px-8 py-3 text-sm font-semibold bg-accent-500 text-white rounded-md hover:bg-accent-600 disabled:opacity-60"
+            pendingChildren="Joining…"
+            showSuccess={false}
           >
             Join {retreat.name}
-          </button>
+          </SubmitButton>
         </form>
       </div>
     </div>

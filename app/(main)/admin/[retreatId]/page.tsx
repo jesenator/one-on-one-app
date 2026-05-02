@@ -10,6 +10,7 @@ import SettingsSaveButton from "./SettingsSaveButton";
 import TimezoneSelect from "../TimezoneSelect";
 import Section from "./Section";
 import AdminScheduleMeeting from "./AdminScheduleMeeting";
+import SubmitButton from "../../SubmitButton";
 import { formatSlotDay, formatSlotTime } from "@/lib/format";
 import { notifyPendingReminder } from "@/lib/notifications";
 import ConfirmButton from "../ConfirmButton";
@@ -478,7 +479,13 @@ export default async function RetreatAdminPage({ params }: { params: Promise<{ r
         <form action={addRetreatAdmin} className="mt-3 flex gap-2">
           <input type="hidden" name="retreatId" value={retreatId} />
           <input name="email" type="email" required placeholder="Email address" className="flex-1 border border-stone-200 rounded-md px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-accent-500/20 focus:border-accent-500" />
-          <button className="bg-accent-500 text-white rounded-md px-4 py-2 text-sm font-semibold hover:bg-accent-600">Add</button>
+          <SubmitButton
+            className="bg-accent-500 text-white rounded-md px-4 py-2 text-sm font-semibold hover:bg-accent-600 disabled:opacity-60"
+            pendingChildren="Adding…"
+            successChildren="Added"
+          >
+            Add
+          </SubmitButton>
         </form>
       </Section>
     </div>
