@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/session";
 import { respondToRequest } from "@/lib/requests";
+import { formatSlotDay, formatSlotTime } from "@/lib/format";
 
 export default async function RespondPage({
   params,
@@ -13,6 +14,12 @@ export default async function RespondPage({
   const s = await getSession();
   if (!s.userId) redirect("/login");
 
-  await respondToRequest(id, s.userId, action);
-  redirect("/schedule");
+  const result = await respondToRequest(id, s.userId, action);
+  if (!result.ok) {
+    redirect(`/schedule?toast=error&msg=${encodeURIComponent(result.error)}`);
+  }
+  const when = `${formatSlotDay(result.slotStart)} at ${formatSlotTime(result.slotStart)}`;
+  redirect(
+    `/schedule?toast=${action}&name=${encodeURIComponent(result.otherName)}&when=${encodeURIComponent(when)}`,
+  );
 }

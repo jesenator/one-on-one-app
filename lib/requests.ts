@@ -94,7 +94,7 @@ export async function respondToRequest(
         notifyRequestDeclined(fromUser.email, toUser.name || "Someone", mr.slotStart);
       }
     }
-    return { ok: true };
+    return { ok: true, otherName: fromUser?.name || "someone", slotStart: mr.slotStart };
   }
 
   // cancel: either party can cancel pending or accepted
@@ -112,5 +112,5 @@ export async function respondToRequest(
   if (otherUser && canceller) {
     notifyMeetingCancelled(otherUser.email, canceller.name || "Someone", mr.slotStart);
   }
-  return { ok: true };
+  return { ok: true, otherName: canceller?.name || "someone", slotStart: mr.slotStart };
 }

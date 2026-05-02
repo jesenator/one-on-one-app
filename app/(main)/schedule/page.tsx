@@ -6,7 +6,9 @@ import {
   ensureDefaultAvailability,
 } from "@/lib/availability";
 import { prisma } from "@/lib/prisma";
+import { Suspense } from "react";
 import CalendarView from "./CalendarView";
+import Toast from "./Toast";
 
 export default async function SchedulePage() {
   const s = await getSession();
@@ -62,18 +64,23 @@ export default async function SchedulePage() {
   }
 
   return (
-    <CalendarView
-      groups={Object.fromEntries(
-        Object.entries(groups).map(([k, v]) => [
-          k,
-          v.map((d) => d.toISOString()),
-        ]),
-      )}
-      availableSlots={Array.from(mine)}
-      slotMeetings={slotMeetings}
-      highlightedSlots={retreat.highlightedSlots ?? []}
-      blockedSlots={retreat.blockedSlots ?? []}
-      now={nowInRetreatTz(retreat).toISOString()}
-    />
+    <>
+      <Suspense fallback={null}>
+        <Toast />
+      </Suspense>
+      <CalendarView
+        groups={Object.fromEntries(
+          Object.entries(groups).map(([k, v]) => [
+            k,
+            v.map((d) => d.toISOString()),
+          ]),
+        )}
+        availableSlots={Array.from(mine)}
+        slotMeetings={slotMeetings}
+        highlightedSlots={retreat.highlightedSlots ?? []}
+        blockedSlots={retreat.blockedSlots ?? []}
+        now={nowInRetreatTz(retreat).toISOString()}
+      />
+    </>
   );
 }
