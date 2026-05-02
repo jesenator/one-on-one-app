@@ -12,9 +12,11 @@ export default async function SchedulePage() {
   const s = await getSession();
   if (!s.userId || !s.retreatId) redirect("/login");
   const retreat = (await getRetreat(s.retreatId))!;
+  const blockedSlots = new Set(retreat.blockedSlots ?? []);
   const slots = generateSlots(retreat);
+  const visibleSlots = slots.filter((slot) => !blockedSlots.has(slot.toISOString()));
   const groups = groupSlotsByDay(slots);
-  await ensureDefaultAvailability(s.userId, s.retreatId, slots);
+  await ensureDefaultAvailability(s.userId, s.retreatId, visibleSlots);
 
   const [mine, allRequests] = await Promise.all([
     getMyAvailability(s.userId, s.retreatId),
@@ -70,6 +72,7 @@ export default async function SchedulePage() {
       availableSlots={Array.from(mine)}
       slotMeetings={slotMeetings}
       highlightedSlots={retreat.highlightedSlots ?? []}
+      blockedSlots={retreat.blockedSlots ?? []}
       now={nowInRetreatTz(retreat).toISOString()}
     />
   );

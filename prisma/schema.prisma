@@ -44,6 +44,7 @@ model Retreat {
   dayEnd             String   @default("22:00")
   granularityMinutes Int      @default(30)
   highlightedSlots   String[]
+  blockedSlots       String[] @default([])
   createdAt          DateTime @default(now())
 
   attendances RetreatAttendance[]

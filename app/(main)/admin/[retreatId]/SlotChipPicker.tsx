@@ -20,11 +20,19 @@ function fmtDay(day: string) {
 export default function SlotChipPicker({
   groups,
   initial,
+  name = "highlightedSlots",
+  selectedClassName = "bg-amber-100 border-amber-300 text-amber-800",
+  unselectedClassName = "bg-stone-50 border-stone-200 text-stone-400 hover:border-amber-200 hover:text-amber-700",
+  summaryLabel = "highlighted",
 }: {
   groups: Record<string, string[]>;
   initial: string[];
+  name?: string;
+  selectedClassName?: string;
+  unselectedClassName?: string;
+  summaryLabel?: string;
 }) {
-  const [selected, setSelected] = useState<Set<string>>(() => new Set(initial));
+  const [selected, setSelected] = useState<Set<string>>(() => new Set(initial ?? []));
   const days = Object.keys(groups).sort();
 
   function toggle(iso: string) {
@@ -38,7 +46,7 @@ export default function SlotChipPicker({
 
   return (
     <div>
-      <input type="hidden" name="highlightedSlots" value={Array.from(selected).sort().join("\n")} />
+      <input type="hidden" name={name} value={Array.from(selected).sort().join("\n")} />
       <div className="space-y-2">
         {days.map((day) => (
           <div key={day} className="flex items-start gap-2">
@@ -53,9 +61,7 @@ export default function SlotChipPicker({
                     onClick={() => toggle(iso)}
                     className={[
                       "px-2 py-0.5 rounded-full text-[11px] font-medium border",
-                      on
-                        ? "bg-amber-100 border-amber-300 text-amber-800"
-                        : "bg-stone-50 border-stone-200 text-stone-400 hover:border-amber-200 hover:text-amber-700",
+                      on ? selectedClassName : unselectedClassName,
                     ].join(" ")}
                   >
                     {fmtTime(iso)}
@@ -67,7 +73,7 @@ export default function SlotChipPicker({
         ))}
       </div>
       {selected.size > 0 && (
-        <div className="text-[11px] text-stone-400 mt-2">{selected.size} slot{selected.size !== 1 ? "s" : ""} highlighted</div>
+        <div className="text-[11px] text-stone-400 mt-2">{selected.size} slot{selected.size !== 1 ? "s" : ""} {summaryLabel}</div>
       )}
     </div>
   );

@@ -16,6 +16,7 @@ type Props = {
   availableSlots: string[];
   slotMeetings: Record<string, SlotMeeting>;
   highlightedSlots: string[];
+  blockedSlots: string[];
   now: string;
 };
 
@@ -32,6 +33,7 @@ export default function CalendarView({
   availableSlots,
   slotMeetings: initialSlotMeetings,
   highlightedSlots,
+  blockedSlots,
   now,
 }: Props) {
   const router = useRouter();
@@ -45,6 +47,7 @@ export default function CalendarView({
   const [busy, setBusy] = useState<string | null>(null);
   const [confirmingCancel, setConfirmingCancel] = useState<string | null>(null);
   const [showPendingModal, setShowPendingModal] = useState(false);
+  const adminBlocked = new Set(blockedSlots);
 
   const incomingRequests = Object.entries(meetings)
     .filter(
@@ -70,6 +73,7 @@ export default function CalendarView({
     }
     if (isPast) return { kind: "past" };
     if (tooSoon) return { kind: "blocked" };
+    if (adminBlocked.has(iso)) return { kind: "blocked" };
     if (available.has(iso)) return { kind: "available" };
     return { kind: "blocked" };
   }
@@ -265,18 +269,21 @@ export default function CalendarView({
       );
     }
 
+    const isAdminBlocked = adminBlocked.has(iso);
     return (
       <div key={iso} className={`${base} border-stone-200 bg-stone-50 ${hlCls}`}>
         <span className="text-xs text-stone-400 w-16 shrink-0 font-medium">{time}</span>
-        <span className="text-sm text-stone-400 flex-1">Blocked</span>
-        <div className="flex self-stretch shrink-0 w-[72px] border-l border-stone-200">
-          <button
-            onClick={() => toggleBlock(iso)}
-            className="self-stretch flex-1 text-stone-500 text-xs font-medium hover:bg-stone-100 hover:text-stone-700"
-          >
-            Unblock
-          </button>
-        </div>
+        <span className="text-sm text-stone-400 flex-1">{isAdminBlocked ? "Blocked by admin" : "Blocked"}</span>
+        {!isAdminBlocked && (
+          <div className="flex self-stretch shrink-0 w-[72px] border-l border-stone-200">
+            <button
+              onClick={() => toggleBlock(iso)}
+              className="self-stretch flex-1 text-stone-500 text-xs font-medium hover:bg-stone-100 hover:text-stone-700"
+            >
+              Unblock
+            </button>
+          </div>
+        )}
       </div>
     );
   }

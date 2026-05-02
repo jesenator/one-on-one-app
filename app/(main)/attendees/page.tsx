@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { getSession } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import AttendeeList from "./AttendeeList";
+import { getRetreat } from "@/lib/config";
 
 export default async function AttendeesPage({
   searchParams,
@@ -11,10 +12,13 @@ export default async function AttendeesPage({
   const s = await getSession();
   if (!s.userId || !s.retreatId) redirect("/login");
   const { slot } = await searchParams;
+  const retreat = await getRetreat(s.retreatId);
 
   let others: { id: string; name: string; email: string }[];
 
-  if (slot) {
+  if (slot && retreat?.blockedSlots.includes(slot)) {
+    others = [];
+  } else if (slot) {
     const [availableRecords, busy] = await Promise.all([
       prisma.availability.findMany({
         where: {

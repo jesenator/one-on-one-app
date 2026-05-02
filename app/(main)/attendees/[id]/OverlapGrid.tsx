@@ -21,6 +21,7 @@ type Props = {
   theirBooked: string[];
   betweenUs: BetweenUsRequest[];
   highlightedSlots?: string[];
+  blockedSlots?: string[];
   now: string;
   preselectedSlot?: string;
 };
@@ -43,6 +44,7 @@ export default function OverlapGrid({
   theirBooked,
   betweenUs,
   highlightedSlots = [],
+  blockedSlots = [],
   now,
   preselectedSlot,
 }: Props) {
@@ -58,6 +60,7 @@ export default function OverlapGrid({
   const theirsSet = new Set(theirs);
   const myBookedSet = new Set(myBooked);
   const theirBookedSet = new Set(theirBooked);
+  const blockedSet = new Set(blockedSlots);
   const nowMs = new Date(now).getTime();
 
   async function request(iso: string) {
@@ -126,6 +129,7 @@ export default function OverlapGrid({
       return p.direction === "outgoing" ? "pendingOutgoing" : "pendingIncoming";
     }
     if (myBookedSet.has(iso) || theirBookedSet.has(iso)) return "booked";
+    if (blockedSet.has(iso)) return "none";
     if (mineSet.has(iso) && theirsSet.has(iso)) return "available";
     return "none";
   }

@@ -23,7 +23,7 @@ async function createRetreat(formData: FormData) {
   if (!id || !name || !timezone || !slotsStart || !slotsEnd) redirect("/admin");
   if (!isValidTimezone(timezone)) redirect("/admin");
   await prisma.retreat.create({
-    data: { id, name, timezone, slotsStart, slotsEnd, dayStart, dayEnd, granularityMinutes: granularity, highlightedSlots: [] },
+    data: { id, name, timezone, slotsStart, slotsEnd, dayStart, dayEnd, granularityMinutes: granularity, highlightedSlots: [], blockedSlots: [] },
   });
   redirect(`/admin/${id}`);
 }

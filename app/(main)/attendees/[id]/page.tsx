@@ -95,6 +95,7 @@ export default async function AttendeeProfile({
           status: p.status as "pending" | "accepted",
         }))}
         highlightedSlots={retreat.highlightedSlots ?? []}
+        blockedSlots={retreat.blockedSlots ?? []}
         now={nowInRetreatTz(retreat).toISOString()}
         preselectedSlot={preselectedSlot}
       />

@@ -1,11 +1,18 @@
 import { prisma } from "./prisma";
 
 export async function getMyAvailability(userId: string, retreatId: string) {
-  const rows = await prisma.availability.findMany({
-    where: { userId, retreatId },
-    select: { slotStart: true },
-  });
-  return new Set(rows.map((r) => r.slotStart.toISOString()));
+  const [retreat, rows] = await Promise.all([
+    prisma.retreat.findUnique({
+      where: { id: retreatId },
+      select: { blockedSlots: true },
+    }),
+    prisma.availability.findMany({
+      where: { userId, retreatId },
+      select: { slotStart: true },
+    }),
+  ]);
+  const blocked = new Set(retreat?.blockedSlots ?? []);
+  return new Set(rows.map((r) => r.slotStart.toISOString()).filter((iso) => !blocked.has(iso)));
 }
 
 export async function ensureDefaultAvailability(
@@ -13,12 +20,18 @@ export async function ensureDefaultAvailability(
   retreatId: string,
   allSlots: Date[],
 ) {
+  const retreat = await prisma.retreat.findUnique({
+    where: { id: retreatId },
+    select: { blockedSlots: true },
+  });
+  const blocked = new Set(retreat?.blockedSlots ?? []);
+  const openSlots = allSlots.filter((slotStart) => !blocked.has(slotStart.toISOString()));
   const count = await prisma.availability.count({
     where: { userId, retreatId },
   });
   if (count > 0) return;
   await prisma.availability.createMany({
-    data: allSlots.map((slotStart) => ({ userId, retreatId, slotStart })),
+    data: openSlots.map((slotStart) => ({ userId, retreatId, slotStart })),
     skipDuplicates: true,
   });
 }
@@ -30,6 +43,11 @@ export async function toggleAvailability(
   available: boolean,
 ) {
   if (available) {
+    const retreat = await prisma.retreat.findUnique({
+      where: { id: retreatId },
+      select: { blockedSlots: true },
+    });
+    if (retreat?.blockedSlots.includes(slotStart.toISOString())) return;
     await prisma.availability.upsert({
       where: {
         userId_retreatId_slotStart: { userId, retreatId, slotStart },

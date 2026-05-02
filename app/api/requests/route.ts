@@ -35,6 +35,12 @@ export async function POST(req: Request) {
       { status: 400 },
     );
   }
+  if ((retreat.blockedSlots ?? []).includes(slotStart.toISOString())) {
+    return NextResponse.json(
+      { error: "That slot has been blocked by the retreat admin." },
+      { status: 400 },
+    );
+  }
 
   // Capture narrowed values for use inside transaction closure
   const userId = s.userId;

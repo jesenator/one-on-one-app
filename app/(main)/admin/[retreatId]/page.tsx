@@ -13,6 +13,10 @@ import { notifyPendingReminder } from "@/lib/notifications";
 import ConfirmButton from "../ConfirmButton";
 import SendRemindersButton from "../SendRemindersButton";
 
+function parseSlotList(value: FormDataEntryValue | null) {
+  return Array.from(new Set(String(value || "").split("\n").map((s) => s.trim()).filter(Boolean))).sort();
+}
+
 async function requireAdmin(retreatId: string) {
   const s = await getSession();
   if (!s.userId) redirect("/login");
@@ -36,7 +40,8 @@ async function updateSettings(formData: FormData) {
       dayStart: String(formData.get("dayStart") || "08:00").trim(),
       dayEnd: String(formData.get("dayEnd") || "22:00").trim(),
       granularityMinutes: Number(formData.get("granularityMinutes")) || 30,
-      highlightedSlots: String(formData.get("highlightedSlots") || "").split("\n").map((s) => s.trim()).filter(Boolean),
+      highlightedSlots: parseSlotList(formData.get("highlightedSlots")),
+      blockedSlots: parseSlotList(formData.get("blockedSlots")),
       active: formData.get("active") === "on",
     },
   });
@@ -126,6 +131,8 @@ export default async function RetreatAdminPage({ params }: { params: Promise<{ r
 
   const retreat = await prisma.retreat.findUnique({ where: { id: retreatId } });
   if (!retreat) notFound();
+  const highlightedSlots = retreat.highlightedSlots ?? [];
+  const blockedSlots = retreat.blockedSlots ?? [];
 
   const allSlots = generateSlots(retreat);
   const totalSlotCount = allSlots.length;
@@ -282,11 +289,32 @@ export default async function RetreatAdminPage({ params }: { params: Promise<{ r
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" className="w-3 h-3 text-stone-400 transition-transform group-open:rotate-90">
                   <path fillRule="evenodd" d="M6.22 4.22a.75.75 0 0 1 1.06 0l3.25 3.25a.75.75 0 0 1 0 1.06l-3.25 3.25a.75.75 0 0 1-1.06-1.06L8.94 8 6.22 5.28a.75.75 0 0 1 0-1.06Z" clipRule="evenodd" />
                 </svg>
-                Highlighted slots ({retreat.highlightedSlots.length})
+                Highlighted slots ({highlightedSlots.length})
               </summary>
               <div className="mt-2">
-                <SlotChipPicker groups={slotGroupsIso} initial={retreat.highlightedSlots} />
+                <SlotChipPicker groups={slotGroupsIso} initial={highlightedSlots} />
               </div>
+            </details>
+            <details className="group">
+              <summary className="text-xs font-semibold text-stone-600 cursor-pointer select-none flex items-center gap-1.5">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" className="w-3 h-3 text-stone-400 transition-transform group-open:rotate-90">
+                  <path fillRule="evenodd" d="M6.22 4.22a.75.75 0 0 1 1.06 0l3.25 3.25a.75.75 0 0 1 0 1.06l-3.25 3.25a.75.75 0 0 1-1.06-1.06L8.94 8 6.22 5.28a.75.75 0 0 1 0-1.06Z" clipRule="evenodd" />
+                </svg>
+                Blocked slots ({blockedSlots.length})
+              </summary>
+              <div className="mt-2">
+                <SlotChipPicker
+                  groups={slotGroupsIso}
+                  initial={blockedSlots}
+                  name="blockedSlots"
+                  selectedClassName="bg-red-100 border-red-300 text-red-800"
+                  unselectedClassName="bg-stone-50 border-stone-200 text-stone-400 hover:border-red-200 hover:text-red-700"
+                  summaryLabel="blocked"
+                />
+              </div>
+              <p className="mt-2 text-[11px] leading-relaxed text-stone-400">
+                Blocked slots are removed from attendee availability and cannot be requested.
+              </p>
             </details>
             <label className="flex items-center gap-2 text-sm">
               <input type="checkbox" name="active" defaultChecked={retreat.active} className="rounded border-stone-300" />
