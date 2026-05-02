@@ -108,7 +108,7 @@ export async function POST(req: Request) {
   ]);
 
   if (toUser && fromUser) {
-    notifyNewRequest(toUser.email, fromUser.name || "Someone", slotStart);
+    notifyNewRequest(toUser.email, fromUser.name || "Someone", slotStart, created.id);
   }
 
   return NextResponse.json({ ok: true, id: created.id });
