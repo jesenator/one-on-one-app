@@ -73,6 +73,14 @@ export function notifyAdminScheduled(toEmail: string, adminName: string, otherNa
   send(toEmail, subject, text, html).catch(() => {});
 }
 
+export function notifyRetreatAdminAdded(toEmail: string, retreatName: string, retreatId: string, addedByName: string) {
+  const joinLink = `${appUrl()}/join/${retreatId}`;
+  const subject = `You're an admin for ${retreatName}`;
+  const text = `${addedByName} made you an admin for ${retreatName}.\n\nSign in to manage the retreat: ${joinLink}`;
+  const html = `<p><strong>${addedByName}</strong> made you an admin for <strong>${retreatName}</strong>.</p><p><a href="${joinLink}" style="display:inline-block;padding:10px 18px;background:#0f766e;color:#fff;text-decoration:none;border-radius:6px;font-weight:600;font-size:14px">Sign in to ${retreatName}</a></p>`;
+  send(toEmail, subject, text, html).catch(() => {});
+}
+
 export function notifyMeetingCancelled(toEmail: string, cancellerName: string, slotStart: Date) {
   const when = fmtSlot(slotStart);
   const link = `${appUrl()}/schedule`;

@@ -12,7 +12,7 @@ import Section from "./Section";
 import AdminScheduleMeeting from "./AdminScheduleMeeting";
 import SubmitButton from "../../SubmitButton";
 import { formatSlotDay, formatSlotTime } from "@/lib/format";
-import { notifyPendingReminder } from "@/lib/notifications";
+import { notifyPendingReminder, notifyRetreatAdminAdded } from "@/lib/notifications";
 import ConfirmButton from "../ConfirmButton";
 import SendRemindersButton from "../SendRemindersButton";
 
@@ -54,15 +54,27 @@ async function updateSettings(formData: FormData) {
 async function addRetreatAdmin(formData: FormData) {
   "use server";
   const retreatId = String(formData.get("retreatId"));
-  await requireAdmin(retreatId);
+  const s = await requireAdmin(retreatId);
   const email = String(formData.get("email") || "").trim().toLowerCase();
-  const user = await prisma.user.findUnique({ where: { email } });
-  if (!user) redirect(`/admin/${retreatId}`);
-  await prisma.retreatAdmin.upsert({
-    where: { userId_retreatId: { userId: user.id, retreatId } },
+  if (!email) redirect(`/admin/${retreatId}`);
+  const user = await prisma.user.upsert({
+    where: { email },
     update: {},
-    create: { userId: user.id, retreatId },
+    create: { email, name: email },
   });
+  const existing = await prisma.retreatAdmin.findUnique({
+    where: { userId_retreatId: { userId: user.id, retreatId } },
+  });
+  if (!existing) {
+    await prisma.retreatAdmin.create({ data: { userId: user.id, retreatId } });
+    const [retreat, addedBy] = await Promise.all([
+      prisma.retreat.findUnique({ where: { id: retreatId }, select: { name: true } }),
+      prisma.user.findUnique({ where: { id: s.userId }, select: { name: true } }),
+    ]);
+    if (retreat && addedBy) {
+      notifyRetreatAdminAdded(email, retreat.name, retreatId, addedBy.name);
+    }
+  }
   redirect(`/admin/${retreatId}`);
 }
 

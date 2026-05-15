@@ -71,11 +71,14 @@ export async function consumeMagicLink(token: string) {
     where: { id: record.id },
     data: { usedAt: new Date() },
   });
-  // Upsert user
-  const user = await prisma.user.upsert({
-    where: { email: record.email },
-    update: {},
-    create: { email: record.email, name: record.name },
-  });
-  return user;
+  // Upsert user. If a stub record exists (name === email, e.g. pre-created
+  // when added as a retreat admin before first login), populate the real name.
+  const existing = await prisma.user.findUnique({ where: { email: record.email } });
+  if (!existing) {
+    return prisma.user.create({ data: { email: record.email, name: record.name } });
+  }
+  if (existing.name === existing.email) {
+    return prisma.user.update({ where: { id: existing.id }, data: { name: record.name } });
+  }
+  return existing;
 }
