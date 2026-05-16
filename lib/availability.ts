@@ -26,10 +26,20 @@ export async function ensureDefaultAvailability(
   });
   const blocked = new Set(retreat?.blockedSlots ?? []);
   const openSlots = allSlots.filter((slotStart) => !blocked.has(slotStart.toISOString()));
-  const count = await prisma.availability.count({
+  const existing = await prisma.availability.findMany({
     where: { userId, retreatId },
+    select: { slotStart: true },
   });
-  if (count > 0) return;
+  // If any existing record aligns with the current slot grid, the user has
+  // a real (or partially-real) customization; leave it alone.
+  const gridIsos = new Set(allSlots.map((s) => s.toISOString()));
+  const anyAligned = existing.some((r) => gridIsos.has(r.slotStart.toISOString()));
+  if (anyAligned) return;
+  // All records (if any) are orphaned from a prior slot grid — clear them
+  // out so this user defaults back to "all open slots available".
+  if (existing.length > 0) {
+    await prisma.availability.deleteMany({ where: { userId, retreatId } });
+  }
   await prisma.availability.createMany({
     data: openSlots.map((slotStart) => ({ userId, retreatId, slotStart })),
     skipDuplicates: true,
