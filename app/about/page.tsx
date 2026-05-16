@@ -57,17 +57,32 @@ export default async function AboutPage() {
       </header>
 
       <main className="flex-1 mx-auto w-full max-w-2xl px-6 py-12 space-y-10">
-        <div>
-          <h1 className="text-3xl font-bold text-stone-900">About Pairwise</h1>
-          <p className="mt-2 text-stone-500">A simple scheduler for 1:1s at retreats and other events.</p>
-        </div>
-
-        <section className="space-y-3 text-stone-700 leading-relaxed">
+        <section className="space-y-4 text-stone-700 leading-relaxed">
+          <h1 className="text-3xl font-bold text-stone-900 mb-6">About Pairwise</h1>
           <p>
-            Pairwise helps people at retreats and other events find time for 1:1 conversations without the
-            back-and-forth. Sign in with a magic link, mark the slots you&apos;re free, browse other attendees
-            and see when your availability overlaps, then request a meeting.
+            <strong className="font-semibold text-stone-900">
+              Pairwise is a simple scheduler for 1:1s at retreats and other events.
+            </strong>{" "}
+            Sign in with a magic link, mark the slots you&apos;re free, browse
+            other attendees and see when your availability overlaps, then request
+            a meeting.
           </p>
+          <Link
+            href="/demo"
+            className="group mt-4 flex items-center justify-between gap-4 rounded-lg border border-accent-200 bg-accent-50/70 p-4 hover:bg-accent-50 hover:border-accent-300"
+          >
+            <div className="min-w-0">
+              <div className="text-sm font-semibold text-accent-700 group-hover:text-accent-800">
+                Try the live demo
+              </div>
+              <div className="text-sm text-stone-600 mt-0.5">
+                Click around an example retreat with fake attendees.
+              </div>
+            </div>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5 text-accent-500 shrink-0 group-hover:translate-x-0.5 transition-transform">
+              <path fillRule="evenodd" d="M8.22 5.22a.75.75 0 0 1 1.06 0l4.25 4.25a.75.75 0 0 1 0 1.06l-4.25 4.25a.75.75 0 0 1-1.06-1.06L11.94 10 8.22 6.28a.75.75 0 0 1 0-1.06Z" clipRule="evenodd" />
+            </svg>
+          </Link>
           <p>
             Built by{" "}
             <a

@@ -24,6 +24,7 @@ type Props = {
   blockedSlots?: string[];
   now: string;
   preselectedSlot?: string;
+  demoMode?: boolean;
 };
 
 type SlotState =
@@ -47,6 +48,7 @@ export default function OverlapGrid({
   blockedSlots = [],
   now,
   preselectedSlot,
+  demoMode = false,
 }: Props) {
   const router = useRouter();
   const [busy, setBusy] = useState<string | null>(null);
@@ -65,8 +67,20 @@ export default function OverlapGrid({
 
   async function request(iso: string) {
     setConfirm(null);
-    setBusy(iso);
     setError(null);
+    if (demoMode) {
+      setBetweenUsMap({
+        ...betweenUsMap,
+        [iso]: {
+          requestId: `demo-${iso}`,
+          slotStart: iso,
+          direction: "outgoing",
+          status: "pending",
+        },
+      });
+      return;
+    }
+    setBusy(iso);
     const res = await fetch("/api/requests", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -93,8 +107,22 @@ export default function OverlapGrid({
     action: "accept" | "decline" | "cancel",
     iso: string,
   ) {
-    setBusy(requestId);
     setError(null);
+    const applyLocal = () => {
+      const next = { ...betweenUsMap };
+      if (action === "accept") {
+        const existing = next[iso];
+        if (existing) next[iso] = { ...existing, status: "accepted" };
+      } else {
+        delete next[iso];
+      }
+      setBetweenUsMap(next);
+    };
+    if (demoMode) {
+      applyLocal();
+      return;
+    }
+    setBusy(requestId);
     const res = await fetch(`/api/requests/${requestId}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -106,14 +134,7 @@ export default function OverlapGrid({
       setError(j.error || "Failed");
       return;
     }
-    const next = { ...betweenUsMap };
-    if (action === "accept") {
-      const existing = next[iso];
-      if (existing) next[iso] = { ...existing, status: "accepted" };
-    } else {
-      delete next[iso];
-    }
-    setBetweenUsMap(next);
+    applyLocal();
     router.refresh();
   }
 

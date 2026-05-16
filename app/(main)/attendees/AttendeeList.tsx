@@ -35,9 +35,11 @@ function getInitials(name: string) {
 export default function AttendeeList({
   attendees,
   slotFilter,
+  basePath = "",
 }: {
   attendees: Attendee[];
   slotFilter?: string;
+  basePath?: string;
 }) {
   const [q, setQ] = useState("");
   const ql = q.toLowerCase();
@@ -57,7 +59,7 @@ export default function AttendeeList({
             </span>
           </span>
           <Link
-            href="/attendees"
+            href={`${basePath}/attendees`}
             className="text-xs text-amber-600 font-medium bg-amber-100 rounded px-2 py-1 hover:bg-amber-200"
           >
             Clear
@@ -83,7 +85,7 @@ export default function AttendeeList({
           {filtered.map((a) => (
             <Link
               key={a.id}
-              href={slotFilter ? `/attendees/${a.id}?slot=${encodeURIComponent(slotFilter)}` : `/attendees/${a.id}`}
+              href={slotFilter ? `${basePath}/attendees/${a.id}?slot=${encodeURIComponent(slotFilter)}` : `${basePath}/attendees/${a.id}`}
               className="flex items-center gap-3 p-4 hover:bg-accent-50/40 group"
             >
               <div className={`w-9 h-9 rounded-md ${getAvatarColor(a.name)} flex items-center justify-center text-white text-xs font-bold shrink-0`}>

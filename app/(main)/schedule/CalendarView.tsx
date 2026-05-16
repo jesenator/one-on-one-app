@@ -18,6 +18,8 @@ type Props = {
   highlightedSlots: string[];
   blockedSlots: string[];
   now: string;
+  basePath?: string;
+  demoMode?: boolean;
 };
 
 type SlotState =
@@ -35,6 +37,8 @@ export default function CalendarView({
   highlightedSlots,
   blockedSlots,
   now,
+  basePath = "",
+  demoMode = false,
 }: Props) {
   const router = useRouter();
   const [available, setAvailable] = useState<Set<string>>(
@@ -84,6 +88,7 @@ export default function CalendarView({
     if (isAvailable) next.delete(iso);
     else next.add(iso);
     setAvailable(next);
+    if (demoMode) return;
     startTransition(async () => {
       await fetch("/api/availability", {
         method: "POST",
@@ -98,6 +103,19 @@ export default function CalendarView({
     action: "accept" | "decline" | "cancel",
     iso: string,
   ) {
+    const applyLocal = () => {
+      const updated = { ...meetings };
+      if (action === "accept") {
+        updated[iso] = { ...updated[iso], type: "confirmed" };
+      } else if (action === "decline" || action === "cancel") {
+        delete updated[iso];
+      }
+      setMeetings(updated);
+    };
+    if (demoMode) {
+      applyLocal();
+      return;
+    }
     setBusy(id);
     const res = await fetch(`/api/requests/${id}`, {
       method: "POST",
@@ -110,13 +128,7 @@ export default function CalendarView({
       alert(j.error || "Failed");
       return;
     }
-    const updated = { ...meetings };
-    if (action === "accept") {
-      updated[iso] = { ...updated[iso], type: "confirmed" };
-    } else if (action === "decline" || action === "cancel") {
-      delete updated[iso];
-    }
-    setMeetings(updated);
+    applyLocal();
     startTransition(() => router.refresh());
   }
 
@@ -252,7 +264,7 @@ export default function CalendarView({
         <div key={iso} className={`${base} border-stone-200 bg-white hover:border-accent-200 hover:bg-accent-50 ${hlCls}`}>
           <span className="text-xs text-stone-600 w-16 shrink-0 font-medium">{time}</span>
           <button
-            onClick={() => router.push(`/attendees?slot=${iso}`)}
+            onClick={() => router.push(`${basePath}/attendees?slot=${iso}`)}
             className="text-sm text-stone-500 truncate flex-1 text-left hover:text-accent-600 cursor-pointer font-medium"
           >
             Available &rarr;
