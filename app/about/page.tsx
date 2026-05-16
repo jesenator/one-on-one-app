@@ -44,12 +44,20 @@ export default async function AboutPage() {
                   retreats={retreats}
                 />
               ) : (
-                <Link
-                  href="/login"
-                  className="flex items-center rounded-md px-3 py-1.5 text-sm font-medium text-stone-500 hover:text-stone-700 hover:bg-stone-100"
-                >
-                  Log in
-                </Link>
+                <nav className="flex items-center gap-1">
+                  <Link
+                    href="/demo"
+                    className="flex items-center rounded-md px-3 py-1.5 text-sm font-medium text-stone-500 hover:text-stone-700 hover:bg-stone-100"
+                  >
+                    Demo
+                  </Link>
+                  <Link
+                    href="/login"
+                    className="flex items-center rounded-md px-3 py-1.5 text-sm font-medium text-stone-500 hover:text-stone-700 hover:bg-stone-100"
+                  >
+                    Log in
+                  </Link>
+                </nav>
               )}
             </div>
           </div>

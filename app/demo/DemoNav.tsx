@@ -45,10 +45,16 @@ export default function DemoNav() {
         );
       })}
       <Link
-        href="/login"
-        className="ml-1 rounded-md bg-accent-500 px-3 py-1.5 text-xs font-semibold text-white hover:bg-accent-600"
+        href="/about"
+        className="flex items-center rounded-md px-3 py-1.5 text-sm font-medium text-stone-500 hover:text-stone-700 hover:bg-stone-100"
       >
-        Sign in
+        About
+      </Link>
+      <Link
+        href="/login"
+        className="flex items-center rounded-md px-3 py-1.5 text-sm font-medium text-stone-500 hover:text-stone-700 hover:bg-stone-100"
+      >
+        Log in
       </Link>
     </nav>
   );
