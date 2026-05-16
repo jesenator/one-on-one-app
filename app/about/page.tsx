@@ -78,7 +78,7 @@ export default async function AboutPage() {
             >
               Jesse Gilbert
             </a>{" "}
-            and{" "}
+            with help from{" "}
             <a
               href="https://saulmunn.com"
               target="_blank"
