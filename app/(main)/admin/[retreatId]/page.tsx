@@ -158,7 +158,7 @@ export default async function RetreatAdminPage({ params }: { params: Promise<{ r
     Object.entries(slotGroupsIso).map(([k, isos]) => [k, isos.filter((iso) => !blockedSlots.includes(iso))])
   );
 
-  const [attendees, meetings, allRequests, admins, allAvailability] = await Promise.all([
+  const [attendees, meetings, allRequests, admins, superAdmins, allAvailability] = await Promise.all([
     prisma.retreatAttendance.findMany({
       where: { retreatId },
       include: { user: true },
@@ -180,11 +180,18 @@ export default async function RetreatAdminPage({ params }: { params: Promise<{ r
       where: { retreatId },
       include: { user: { select: { id: true, name: true, email: true } } },
     }),
+    prisma.user.findMany({
+      where: { superAdmin: true },
+      select: { id: true, name: true, email: true },
+      orderBy: { name: "asc" },
+    }),
     prisma.availability.findMany({
       where: { retreatId },
       select: { userId: true, slotStart: true },
     }),
   ]);
+  const retreatAdminUserIds = new Set(admins.map((a) => a.user.id));
+  const superAdminsOnly = superAdmins.filter((u) => !retreatAdminUserIds.has(u.id));
 
   const confirmed = allRequests.filter((r) => r.status === "accepted");
   const pending = allRequests.filter((r) => r.status === "pending");
@@ -471,8 +478,17 @@ export default async function RetreatAdminPage({ params }: { params: Promise<{ r
         </form>
       </Section>
 
-      <Section title="Retreat admins" count={admins.length}>
+      <Section title="Retreat admins" count={admins.length + superAdminsOnly.length}>
         <div className="overflow-hidden rounded-md border border-stone-200 bg-white divide-y divide-stone-100">
+          {superAdminsOnly.map((u) => (
+            <div key={u.id} className="p-4 flex items-center justify-between text-sm text-stone-400">
+              <div>
+                <div className="font-medium">{u.name}</div>
+                <div className="text-xs">{u.email}</div>
+              </div>
+              <span className="text-xs italic">Super admin</span>
+            </div>
+          ))}
           {admins.map((a) => (
             <div key={a.id} className="p-4 flex items-center justify-between text-sm">
               <div>
@@ -486,7 +502,7 @@ export default async function RetreatAdminPage({ params }: { params: Promise<{ r
               </form>
             </div>
           ))}
-          {admins.length === 0 && <div className="p-4 text-xs text-stone-400">No retreat admins. Super admins always have access.</div>}
+          {admins.length === 0 && superAdminsOnly.length === 0 && <div className="p-4 text-xs text-stone-400">No retreat admins. Super admins always have access.</div>}
         </div>
         <form action={addRetreatAdmin} className="mt-3 flex gap-2">
           <input type="hidden" name="retreatId" value={retreatId} />
