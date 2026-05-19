@@ -4,16 +4,20 @@ import { getSession } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { isRetreatJoinable } from "@/lib/config";
 
+const APP_URL = process.env.APP_URL || "http://localhost:3000";
+
+function r(path: string) {
+  return NextResponse.redirect(new URL(path, APP_URL));
+}
+
 export async function GET(req: Request) {
   const url = new URL(req.url);
   const token = url.searchParams.get("token");
-  if (!token) {
-    return NextResponse.redirect(new URL("/login?error=missing", url));
-  }
+  if (!token) return r("/login?error=missing");
+
   const user = await consumeMagicLink(token);
-  if (!user) {
-    return NextResponse.redirect(new URL("/login?error=invalid", url));
-  }
+  if (!user) return r("/login?error=invalid");
+
   const session = await getSession();
   session.userId = user.id;
   session.email = user.email;
@@ -34,7 +38,10 @@ export async function GET(req: Request) {
         });
         session.retreatId = retreatId;
         await session.save();
-        return NextResponse.redirect(new URL("/schedule", url));
+        const freshUser = await prisma.user.findUnique({ where: { id: user.id } });
+        const hasProfile = freshUser && (freshUser.tagline || freshUser.careerStage || freshUser.aboutMe || freshUser.goals || freshUser.canHelpWith || freshUser.linkedinUrl || freshUser.websiteUrl || freshUser.photoUrl);
+        if (!hasProfile) return r(`/import-profile?retreat=${retreatId}`);
+        return r("/schedule");
       }
     }
   }
@@ -46,9 +53,15 @@ export async function GET(req: Request) {
   if (recent) {
     session.retreatId = recent.retreatId;
     await session.save();
-    return NextResponse.redirect(new URL("/schedule", url));
+    const freshUser = await prisma.user.findUnique({ where: { id: user.id } });
+    const hasProfile = freshUser && (freshUser.tagline || freshUser.careerStage || freshUser.aboutMe || freshUser.goals || freshUser.canHelpWith || freshUser.linkedinUrl || freshUser.websiteUrl || freshUser.photoUrl);
+    if (!hasProfile) return r(`/import-profile?retreat=${recent.retreatId}`);
+    return r("/schedule");
   }
 
   await session.save();
-  return NextResponse.redirect(new URL("/no-retreat", url));
+  const freshUser = await prisma.user.findUnique({ where: { id: user.id } });
+  const hasProfile = freshUser && (freshUser.tagline || freshUser.careerStage || freshUser.aboutMe || freshUser.goals || freshUser.canHelpWith || freshUser.linkedinUrl || freshUser.websiteUrl || freshUser.photoUrl);
+  if (!hasProfile) return r("/import-profile");
+  return r("/no-retreat");
 }
