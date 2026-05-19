@@ -1,11 +1,9 @@
 import crypto from "crypto";
-import sgMail from "@sendgrid/mail";
+import { Resend } from "resend";
 import { prisma } from "./prisma";
 import { appUrl } from "./url";
 
-if (process.env.SENDGRID_API_KEY) {
-  sgMail.setApiKey(process.env.SENDGRID_API_KEY);
-}
+const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 
 const TOKEN_TTL_MS = 1000 * 60 * 30; // 30 min
 
@@ -34,29 +32,22 @@ export async function createMagicLink(
 }
 
 export async function sendMagicLinkEmail(email: string, link: string) {
-  const from = process.env.SENDGRID_FROM_EMAIL;
-  console.log("[auth] env check:", {
-    hasSendgridKey: !!process.env.SENDGRID_API_KEY,
-    keyPrefix: process.env.SENDGRID_API_KEY?.slice(0, 5),
-    from,
-    appUrl: process.env.APP_URL,
-    nodeEnv: process.env.NODE_ENV,
-  });
-  if (!process.env.SENDGRID_API_KEY || !from) {
+  const from = process.env.RESEND_FROM_EMAIL;
+  if (!resend || !from) {
     console.log("[dev] magic link for", email, ":", link);
     return;
   }
   try {
-    await sgMail.send({
+    await resend.emails.send({
       to: email,
       from,
       subject: "Your Pairwise login link",
       text: `Click to log in: ${link}\n\nThis link expires in 30 minutes.`,
       html: `<p><a href="${link}">Click here to log in to Pairwise</a></p><p>This link expires in 30 minutes.</p>`,
     });
-    console.log("[sendgrid] email sent to", email);
+    console.log("[resend] email sent to", email);
   } catch (err: unknown) {
-    console.error("[sendgrid] failed to send to", email, err);
+    console.error("[resend] failed to send to", email, err);
     throw err;
   }
 }
