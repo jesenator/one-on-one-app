@@ -9,6 +9,7 @@ try {
 }
 
 const nextConfig: NextConfig = {
+  allowedDevOrigins: ['172.25.25.19'],
   async redirects() {
     return Object.entries(shortlinks).map(([key, destination]) => ({
       source: key.startsWith("/") ? key : `/${key}`,

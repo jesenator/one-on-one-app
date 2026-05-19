@@ -15,6 +15,7 @@ import { formatSlotDay, formatSlotTime } from "@/lib/format";
 import { notifyPendingReminder, notifyRetreatAdminAdded } from "@/lib/notifications";
 import ConfirmButton from "../ConfirmButton";
 import SendRemindersButton from "../SendRemindersButton";
+import DeleteRetreatButton from "./DeleteRetreatButton";
 
 function parseSlotList(value: FormDataEntryValue | null) {
   return Array.from(new Set(String(value || "").split("\n").map((s) => s.trim()).filter(Boolean))).sort();
@@ -500,6 +501,14 @@ export default async function RetreatAdminPage({ params }: { params: Promise<{ r
           </SubmitButton>
         </form>
       </Section>
+
+      {superAdmin && (
+        <div className="mt-8 border-t border-red-200 pt-6">
+          <h2 className="text-sm font-semibold text-red-800 mb-1">Danger Zone</h2>
+          <p className="text-xs text-stone-400 mb-3">Permanently delete all data for this retreat. This cannot be undone.</p>
+          <DeleteRetreatButton retreatId={retreatId} isSuperAdmin={superAdmin} />
+        </div>
+      )}
     </div>
   );
 }

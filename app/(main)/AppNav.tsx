@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import SwitchRetreatModal from "./profile/SwitchRetreatModal";
+import SwitchRetreatModal from "@/app/profile/SwitchRetreatModal";
 import { switchRetreat } from "./actions";
 
 type RetreatItem = { retreatId: string; name: string; isCurrent: boolean };

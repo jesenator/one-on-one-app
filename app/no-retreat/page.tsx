@@ -17,7 +17,10 @@ export default async function NoRetreatPage() {
         <p className="text-sm text-stone-500 leading-relaxed">
           You&apos;re not currently part of an active retreat. Use the join link shared by your retreat organizer to get started.
         </p>
-        <div className="mt-8">
+        <div className="mt-8 flex flex-col items-center gap-3">
+          <a href="/profile" className="text-sm font-medium text-white bg-accent-500 rounded-md px-4 py-2 hover:bg-accent-600">
+            Edit my profile
+          </a>
           <form action="/api/auth/logout" method="post">
             <button className="text-sm text-stone-500 font-medium border border-stone-200 rounded-md px-4 py-2 hover:bg-stone-50">
               Log out
