@@ -49,6 +49,15 @@ export default async function UserProfilePage({
 
   return (
     <div className="max-w-lg mx-auto space-y-6">
+      <Link
+        href="/attendees"
+        className="inline-flex items-center gap-1.5 text-xs text-stone-400 hover:text-accent-600 font-medium"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-3.5 h-3.5">
+          <path fillRule="evenodd" d="M11.78 5.22a.75.75 0 0 1 0 1.06L8.06 10l3.72 3.72a.75.75 0 1 1-1.06 1.06l-4.25-4.25a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 0Z" clipRule="evenodd" />
+        </svg>
+        All attendees
+      </Link>
       {/* Header */}
       <div className="overflow-hidden rounded-md border border-stone-200 bg-white shadow-sm p-6">
         <div className="flex items-start gap-4">

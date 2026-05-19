@@ -14,7 +14,8 @@ export default async function AttendeesPage({
   const { slot } = await searchParams;
   const retreat = await getRetreat(s.retreatId);
 
-  let others: { id: string; name: string; email: string }[];
+  const userSelect = { id: true, name: true, email: true, tagline: true } as const;
+  let others: { id: string; name: string; email: string; tagline: string | null }[];
 
   if (slot && retreat?.blockedSlots.includes(slot)) {
     others = [];
@@ -26,7 +27,7 @@ export default async function AttendeesPage({
           slotStart: new Date(slot),
           userId: { not: s.userId },
         },
-        include: { user: { select: { id: true, name: true, email: true } } },
+        include: { user: { select: userSelect } },
       }),
       prisma.meetingRequest.findMany({
         where: {
@@ -45,7 +46,7 @@ export default async function AttendeesPage({
   } else {
     const att = await prisma.retreatAttendance.findMany({
       where: { retreatId: s.retreatId },
-      include: { user: { select: { id: true, name: true, email: true } } },
+      include: { user: { select: userSelect } },
     });
     others = att
       .map((a) => a.user)

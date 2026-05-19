@@ -3,11 +3,10 @@ import { consumeMagicLink } from "@/lib/auth";
 import { getSession } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { isRetreatJoinable } from "@/lib/config";
-
-const APP_URL = process.env.APP_URL || "http://localhost:3000";
+import { appUrl } from "@/lib/url";
 
 function r(path: string) {
-  return NextResponse.redirect(new URL(path, APP_URL));
+  return NextResponse.redirect(new URL(path, appUrl()));
 }
 
 export async function GET(req: Request) {
