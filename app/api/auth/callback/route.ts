@@ -10,9 +10,9 @@ export async function GET(req: Request) {
   if (!token) {
     return NextResponse.redirect(new URL("/login?error=missing", url));
   }
-  const user = await consumeMagicLink(token);
+  const { user, reason } = await consumeMagicLink(token);
   if (!user) {
-    return NextResponse.redirect(new URL("/login?error=invalid", url));
+    return NextResponse.redirect(new URL(`/login?error=${reason}`, url));
   }
   const session = await getSession();
   session.userId = user.id;

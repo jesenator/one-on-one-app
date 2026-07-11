@@ -3,6 +3,12 @@ import { useState } from "react";
 import { useSearchParams } from "next/navigation";
 import BrandMark from "../BrandMark";
 
+const CALLBACK_ERRORS: Record<string, string> = {
+  expired: "That sign-in link has expired. Enter your details to get a new one.",
+  invalid: "That sign-in link didn't work. Enter your details to get a new one.",
+  missing: "That sign-in link didn't work. Enter your details to get a new one.",
+};
+
 export default function LoginForm() {
   const searchParams = useSearchParams();
   const retreat = searchParams.get("retreat") || "";
@@ -10,7 +16,9 @@ export default function LoginForm() {
   const [name, setName] = useState("");
   const [sent, setSent] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(
+    () => CALLBACK_ERRORS[searchParams.get("error") ?? ""] ?? null,
+  );
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();

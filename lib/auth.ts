@@ -64,21 +64,33 @@ export async function sendMagicLinkEmail(email: string, link: string) {
 export async function consumeMagicLink(token: string) {
   const tokenHash = hashToken(token);
   const record = await prisma.magicLinkToken.findUnique({ where: { tokenHash } });
-  if (!record) return null;
-  if (record.usedAt) return null;
-  if (record.expiresAt < new Date()) return null;
-  await prisma.magicLinkToken.update({
-    where: { id: record.id },
-    data: { usedAt: new Date() },
-  });
+  if (!record) return { user: null, reason: "invalid" as const };
+  if (record.expiresAt < new Date()) return { user: null, reason: "expired" as const };
+  // Tokens stay valid until expiry rather than being single-use: email
+  // security scanners (e.g. Outlook SafeLinks) prefetch links and would
+  // otherwise consume the token before the user clicks it. usedAt is kept
+  // as a first-use timestamp for debugging only.
+  if (!record.usedAt) {
+    await prisma.magicLinkToken.update({
+      where: { id: record.id },
+      data: { usedAt: new Date() },
+    });
+  }
   // Upsert user. If a stub record exists (name === email, e.g. pre-created
   // when added as a retreat admin before first login), populate the real name.
-  const existing = await prisma.user.findUnique({ where: { email: record.email } });
-  if (!existing) {
-    return prisma.user.create({ data: { email: record.email, name: record.name } });
+  const user = await prisma.user.upsert({
+    where: { email: record.email },
+    update: {},
+    create: { email: record.email, name: record.name },
+  });
+  if (user.name === user.email && record.name !== user.name) {
+    return {
+      user: await prisma.user.update({
+        where: { id: user.id },
+        data: { name: record.name },
+      }),
+      reason: null,
+    };
   }
-  if (existing.name === existing.email) {
-    return prisma.user.update({ where: { id: existing.id }, data: { name: record.name } });
-  }
-  return existing;
+  return { user, reason: null };
 }
