@@ -14,11 +14,12 @@ export default async function SchedulePage() {
   const s = await getSession();
   if (!s.userId || !s.retreatId) redirect("/login");
   const retreat = (await getRetreat(s.retreatId))!;
-  const blockedSlots = new Set(retreat.blockedSlots ?? []);
   const slots = generateSlots(retreat);
-  const visibleSlots = slots.filter((slot) => !blockedSlots.has(slot.toISOString()));
   const groups = groupSlotsByDay(slots);
-  await ensureDefaultAvailability(s.userId, s.retreatId, visibleSlots);
+  // Pass the full grid: ensureDefaultAvailability filters blocked slots itself,
+  // and the orphan check must see blocked slots too, or a user whose remaining
+  // availability was all admin-blocked gets wrongly reset to "all open".
+  await ensureDefaultAvailability(s.userId, s.retreatId, slots);
 
   const [mine, allRequests] = await Promise.all([
     getMyAvailability(s.userId, s.retreatId),

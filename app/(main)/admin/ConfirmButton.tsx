@@ -1,5 +1,10 @@
 "use client";
 
+import { useState } from "react";
+
+// Two-click confirm: first click arms the button, second click submits the
+// form. Native window.confirm is banned in this codebase (silently suppressed
+// in prod — see CalendarView's cancel button for the original fix).
 export default function ConfirmButton({
   message,
   label,
@@ -11,15 +16,21 @@ export default function ConfirmButton({
   className?: string;
   children?: React.ReactNode;
 }) {
+  const [armed, setArmed] = useState(false);
   return (
     <button
       type="submit"
       className={className}
+      title={message}
       onClick={(e) => {
-        if (!window.confirm(message)) e.preventDefault();
+        if (!armed) {
+          e.preventDefault();
+          setArmed(true);
+        }
       }}
+      onBlur={() => setArmed(false)}
     >
-      {children ?? label}
+      {armed ? "Sure?" : children ?? label}
     </button>
   );
 }

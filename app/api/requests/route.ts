@@ -18,7 +18,14 @@ export async function POST(req: Request) {
   const parsed = schema.safeParse(await req.json().catch(() => null));
   if (!parsed.success)
     return NextResponse.json({ error: "bad input" }, { status: 400 });
+  if (parsed.data.toUserId === s.userId)
+    return NextResponse.json(
+      { error: "You can't request a 1:1 with yourself." },
+      { status: 400 },
+    );
   const slotStart = new Date(parsed.data.slotStart);
+  if (isNaN(slotStart.getTime()))
+    return NextResponse.json({ error: "bad input" }, { status: 400 });
 
   // Slots are stored as "fake UTC" — wall-clock time in the retreat's timezone
   // pretending to be UTC (see lib/config.ts generateSlots). Compare against

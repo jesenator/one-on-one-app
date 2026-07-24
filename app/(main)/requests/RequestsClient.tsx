@@ -1,6 +1,6 @@
 "use client";
 import { useRouter } from "next/navigation";
-import { useTransition } from "react";
+import { useState, useTransition } from "react";
 import { formatSlotDay, formatSlotTime } from "@/lib/format";
 
 type Person = { id: string; name: string; email: string };
@@ -27,8 +27,11 @@ export default function RequestsClient({
 }) {
   const router = useRouter();
   const [, startTransition] = useTransition();
+  const [error, setError] = useState<string | null>(null);
+  const [confirmingCancel, setConfirmingCancel] = useState<string | null>(null);
 
   async function act(id: string, action: "accept" | "decline" | "cancel") {
+    setError(null);
     const res = await fetch(`/api/requests/${id}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -36,7 +39,7 @@ export default function RequestsClient({
     });
     if (!res.ok) {
       const j = await res.json().catch(() => ({}));
-      alert(j.error || "Failed");
+      setError(j.error || "Failed");
       return;
     }
     startTransition(() => router.refresh());
@@ -47,6 +50,11 @@ export default function RequestsClient({
 
   return (
     <div className="space-y-8">
+      {error && (
+        <div className="text-sm text-red-700 bg-red-50 border border-red-200 rounded-md p-3">
+          {error}
+        </div>
+      )}
       <Section
         title="Incoming"
         count={incoming.length}
@@ -156,12 +164,24 @@ export default function RequestsClient({
                   .ics
                 </a>
                 <button
-                  className="px-3 py-1.5 border border-red-200 text-red-500 rounded-md text-xs font-medium hover:bg-red-50"
+                  className={`px-3 py-1.5 border rounded-md text-xs font-medium ${
+                    confirmingCancel === r.id
+                      ? "border-red-300 bg-red-50 text-red-600 font-semibold"
+                      : "border-red-200 text-red-500 hover:bg-red-50"
+                  }`}
                   onClick={() => {
-                    if (confirm("Cancel this 1:1?")) act(r.id, "cancel");
+                    if (confirmingCancel === r.id) {
+                      setConfirmingCancel(null);
+                      act(r.id, "cancel");
+                    } else {
+                      setConfirmingCancel(r.id);
+                    }
+                  }}
+                  onBlur={() => {
+                    if (confirmingCancel === r.id) setConfirmingCancel(null);
                   }}
                 >
-                  Cancel
+                  {confirmingCancel === r.id ? "Sure?" : "Cancel"}
                 </button>
               </div>
             </Row>

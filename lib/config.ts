@@ -83,6 +83,25 @@ export function nowInRetreatTz(retreat: RetreatConfig): Date {
   );
 }
 
+const WALL_CLOCK_RE = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/; // fake-UTC "2026-04-15T08:00"
+const TIME_RE = /^([01]\d|2[0-3]):[0-5]\d$/;
+
+// Server-side guard for admin-submitted slot-grid fields. The form inputs
+// enforce this client-side only; a bad granularity (0 or negative) would make
+// generateSlots loop forever.
+export function isValidSlotGrid(input: {
+  slotsStart: string;
+  slotsEnd: string;
+  dayStart: string;
+  dayEnd: string;
+  granularityMinutes: number;
+}): boolean {
+  if (!WALL_CLOCK_RE.test(input.slotsStart) || !WALL_CLOCK_RE.test(input.slotsEnd)) return false;
+  if (!TIME_RE.test(input.dayStart) || !TIME_RE.test(input.dayEnd)) return false;
+  if (!Number.isInteger(input.granularityMinutes) || input.granularityMinutes < 5) return false;
+  return true;
+}
+
 export function isValidTimezone(tz: string): boolean {
   if (!tz) return false;
   try {

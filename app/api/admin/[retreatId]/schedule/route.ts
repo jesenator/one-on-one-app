@@ -30,6 +30,8 @@ export async function POST(
     return NextResponse.json({ error: "Pick two different people." }, { status: 400 });
 
   const slotStart = new Date(parsed.data.slotStart);
+  if (isNaN(slotStart.getTime()))
+    return NextResponse.json({ error: "bad input" }, { status: 400 });
 
   let created;
   try {

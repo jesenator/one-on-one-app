@@ -27,7 +27,7 @@ async function updateName(formData: FormData) {
   "use server";
   const session = await getSession();
   if (!session.userId) redirect("/login");
-  const name = String(formData.get("name") || "").trim();
+  const name = String(formData.get("name") || "").trim().slice(0, 100);
   if (name) {
     await prisma.user.update({ where: { id: session.userId }, data: { name } });
     session.name = name;

@@ -49,6 +49,7 @@ export default function CalendarView({
   const nowMs = new Date(now).getTime();
   const [, startTransition] = useTransition();
   const [busy, setBusy] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const [confirmingCancel, setConfirmingCancel] = useState<string | null>(null);
   const [showPendingModal, setShowPendingModal] = useState(false);
   const adminBlocked = new Set(blockedSlots);
@@ -116,6 +117,7 @@ export default function CalendarView({
       applyLocal();
       return;
     }
+    setError(null);
     setBusy(id);
     const res = await fetch(`/api/requests/${id}`, {
       method: "POST",
@@ -125,7 +127,7 @@ export default function CalendarView({
     setBusy(null);
     if (!res.ok) {
       const j = await res.json().catch(() => ({}));
-      alert(j.error || "Failed");
+      setError(j.error || "Failed");
       return;
     }
     applyLocal();
@@ -325,6 +327,12 @@ export default function CalendarView({
           <p className="text-sm text-stone-400 mt-0.5">Manage your availability and meetings</p>
         </div>
       </div>
+
+      {error && (
+        <div className="text-sm text-red-700 bg-red-50 border border-red-200 rounded-md p-3 mb-4">
+          {error}
+        </div>
+      )}
 
       <div className="text-xs text-stone-400 flex flex-wrap gap-4 mb-5 pb-4 border-b border-stone-200/60">
         <span className="flex items-center gap-2">

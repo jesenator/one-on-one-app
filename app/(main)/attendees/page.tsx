@@ -12,6 +12,7 @@ export default async function AttendeesPage({
   const s = await getSession();
   if (!s.userId || !s.retreatId) redirect("/login");
   const { slot } = await searchParams;
+  if (slot && isNaN(new Date(slot).getTime())) redirect("/attendees");
   const retreat = await getRetreat(s.retreatId);
 
   let others: { id: string; name: string; email: string }[];

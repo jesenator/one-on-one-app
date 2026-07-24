@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getSession } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
-import { isSuperAdmin, isValidTimezone } from "@/lib/config";
+import { isSuperAdmin, isValidTimezone, isValidSlotGrid } from "@/lib/config";
 import ConfirmButton from "./ConfirmButton";
 import TimezoneSelect from "./TimezoneSelect";
 import SubmitButton from "../SubmitButton";
@@ -16,15 +16,20 @@ async function createRetreat(formData: FormData) {
   const id = String(formData.get("id") || "").trim().toLowerCase().replace(/[^a-z0-9-]/g, "-");
   const name = String(formData.get("name") || "").trim();
   const timezone = String(formData.get("timezone") || "").trim();
-  const slotsStart = String(formData.get("slotsStart") || "").trim();
-  const slotsEnd = String(formData.get("slotsEnd") || "").trim();
-  const dayStart = String(formData.get("dayStart") || "08:00").trim();
-  const dayEnd = String(formData.get("dayEnd") || "22:00").trim();
-  const granularity = Number(formData.get("granularityMinutes")) || 30;
-  if (!id || !name || !timezone || !slotsStart || !slotsEnd) redirect("/admin");
+  const grid = {
+    slotsStart: String(formData.get("slotsStart") || "").trim(),
+    slotsEnd: String(formData.get("slotsEnd") || "").trim(),
+    dayStart: String(formData.get("dayStart") || "08:00").trim(),
+    dayEnd: String(formData.get("dayEnd") || "22:00").trim(),
+    granularityMinutes: Number(formData.get("granularityMinutes")),
+  };
+  if (!id || !name || !timezone) redirect("/admin");
   if (!isValidTimezone(timezone)) redirect("/admin");
+  if (!isValidSlotGrid(grid)) redirect("/admin");
+  const existing = await prisma.retreat.findUnique({ where: { id } });
+  if (existing) redirect(`/admin/${id}`);
   await prisma.retreat.create({
-    data: { id, name, timezone, slotsStart, slotsEnd, dayStart, dayEnd, granularityMinutes: granularity, highlightedSlots: [], blockedSlots: [] },
+    data: { id, name, timezone, ...grid, highlightedSlots: [], blockedSlots: [] },
   });
   redirect(`/admin/${id}`);
 }

@@ -26,10 +26,13 @@ export async function POST(req: Request) {
   const parsed = postSchema.safeParse(await req.json().catch(() => null));
   if (!parsed.success)
     return NextResponse.json({ error: "bad input" }, { status: 400 });
+  const slotStart = new Date(parsed.data.slotStart);
+  if (isNaN(slotStart.getTime()))
+    return NextResponse.json({ error: "bad input" }, { status: 400 });
   await toggleAvailability(
     s.userId,
     s.retreatId,
-    new Date(parsed.data.slotStart),
+    slotStart,
     parsed.data.available,
   );
   return NextResponse.json({ ok: true });

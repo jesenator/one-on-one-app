@@ -25,6 +25,16 @@ function fmtSlot(d: Date) {
   return `${formatSlotDay(d)} at ${formatSlotTime(d)}`;
 }
 
+// User names and retreat names are user-controlled; escape them before
+// interpolating into email HTML.
+function esc(s: string) {
+  return s
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
 export function notifyNewRequest(toEmail: string, fromName: string, slotStart: Date, requestId: string) {
   const when = fmtSlot(slotStart);
   const acceptLink = `${appUrl()}/r/${requestId}/accept`;
@@ -34,7 +44,7 @@ export function notifyNewRequest(toEmail: string, fromName: string, slotStart: D
   const text = `${fromName} requested a 1:1 with you on ${when}.\n\nAccept: ${acceptLink}\nDecline: ${declineLink}\n\nOr open your schedule: ${scheduleLink}`;
   const btn = (href: string, color: string, label: string) =>
     `<a href="${href}" style="display:inline-block;padding:10px 18px;margin-right:8px;background:${color};color:#fff;text-decoration:none;border-radius:6px;font-weight:600;font-size:14px">${label}</a>`;
-  const html = `<p><strong>${fromName}</strong> requested a 1:1 with you on <strong>${when}</strong>.</p><p>${btn(acceptLink, "#16a34a", "Accept")}${btn(declineLink, "#dc2626", "Decline")}</p><p style="font-size:12px;color:#666">Or <a href="${scheduleLink}">open your schedule</a> to respond.</p>`;
+  const html = `<p><strong>${esc(fromName)}</strong> requested a 1:1 with you on <strong>${when}</strong>.</p><p>${btn(acceptLink, "#16a34a", "Accept")}${btn(declineLink, "#dc2626", "Decline")}</p><p style="font-size:12px;color:#666">Or <a href="${scheduleLink}">open your schedule</a> to respond.</p>`;
   send(toEmail, subject, text, html).catch(() => {});
 }
 
@@ -43,7 +53,7 @@ export function notifyRequestAccepted(toEmail: string, accepterName: string, slo
   const link = `${appUrl()}/schedule`;
   const subject = `${accepterName} accepted your 1:1`;
   const text = `${accepterName} accepted your 1:1 on ${when}.\n\nView your schedule: ${link}`;
-  const html = `<p><strong>${accepterName}</strong> accepted your 1:1 on <strong>${when}</strong>.</p><p><a href="${link}">View your schedule</a></p>`;
+  const html = `<p><strong>${esc(accepterName)}</strong> accepted your 1:1 on <strong>${when}</strong>.</p><p><a href="${link}">View your schedule</a></p>`;
   send(toEmail, subject, text, html).catch(() => {});
 }
 
@@ -52,7 +62,7 @@ export function notifyRequestDeclined(toEmail: string, declinerName: string, slo
   const link = `${appUrl()}/attendees`;
   const subject = `1:1 declined by ${declinerName}`;
   const text = `${declinerName} declined your 1:1 request for ${when}.\n\nFind another time: ${link}`;
-  const html = `<p><strong>${declinerName}</strong> declined your 1:1 request for <strong>${when}</strong>.</p><p><a href="${link}">Browse attendees to find another time</a></p>`;
+  const html = `<p><strong>${esc(declinerName)}</strong> declined your 1:1 request for <strong>${when}</strong>.</p><p><a href="${link}">Browse attendees to find another time</a></p>`;
   send(toEmail, subject, text, html).catch(() => {});
 }
 
@@ -60,7 +70,7 @@ export function notifyPendingReminder(toEmail: string, userName: string, pending
   const link = `${appUrl()}/schedule`;
   const subject = `You have ${pendingCount} pending one-on-one${pendingCount === 1 ? "" : "s"}`;
   const text = `Hi ${userName}, you have ${pendingCount} pending one-on-one request${pendingCount === 1 ? "" : "s"} for ${retreatName}.\n\nView your schedule to accept or decline: ${link}`;
-  const html = `<p>Hi <strong>${userName}</strong>, you have <strong>${pendingCount}</strong> pending one-on-one request${pendingCount === 1 ? "" : "s"} for <strong>${retreatName}</strong>.</p><p><a href="${link}">Open your schedule to accept or decline</a></p>`;
+  const html = `<p>Hi <strong>${esc(userName)}</strong>, you have <strong>${pendingCount}</strong> pending one-on-one request${pendingCount === 1 ? "" : "s"} for <strong>${esc(retreatName)}</strong>.</p><p><a href="${link}">Open your schedule to accept or decline</a></p>`;
   return send(toEmail, subject, text, html);
 }
 
@@ -69,7 +79,7 @@ export function notifyAdminScheduled(toEmail: string, adminName: string, otherNa
   const link = `${appUrl()}/schedule`;
   const subject = `1:1 scheduled with ${otherName}`;
   const text = `${adminName} (admin) scheduled a 1:1 between you and ${otherName} on ${when}.\n\nView your schedule: ${link}`;
-  const html = `<p><strong>${adminName}</strong> (admin) scheduled a 1:1 between you and <strong>${otherName}</strong> on <strong>${when}</strong>.</p><p><a href="${link}">View your schedule</a></p>`;
+  const html = `<p><strong>${esc(adminName)}</strong> (admin) scheduled a 1:1 between you and <strong>${esc(otherName)}</strong> on <strong>${when}</strong>.</p><p><a href="${link}">View your schedule</a></p>`;
   send(toEmail, subject, text, html).catch(() => {});
 }
 
@@ -77,7 +87,7 @@ export function notifyRetreatAdminAdded(toEmail: string, retreatName: string, re
   const joinLink = `${appUrl()}/join/${retreatId}`;
   const subject = `You're an admin for ${retreatName}`;
   const text = `${addedByName} made you an admin for ${retreatName}.\n\nSign in to manage the retreat: ${joinLink}`;
-  const html = `<p><strong>${addedByName}</strong> made you an admin for <strong>${retreatName}</strong>.</p><p><a href="${joinLink}" style="display:inline-block;padding:10px 18px;background:#0f766e;color:#fff;text-decoration:none;border-radius:6px;font-weight:600;font-size:14px">Sign in to ${retreatName}</a></p>`;
+  const html = `<p><strong>${esc(addedByName)}</strong> made you an admin for <strong>${esc(retreatName)}</strong>.</p><p><a href="${joinLink}" style="display:inline-block;padding:10px 18px;background:#0f766e;color:#fff;text-decoration:none;border-radius:6px;font-weight:600;font-size:14px">Sign in to ${esc(retreatName)}</a></p>`;
   send(toEmail, subject, text, html).catch(() => {});
 }
 
@@ -86,6 +96,6 @@ export function notifyMeetingCancelled(toEmail: string, cancellerName: string, s
   const link = `${appUrl()}/schedule`;
   const subject = `1:1 cancelled by ${cancellerName}`;
   const text = `${cancellerName} cancelled your 1:1 on ${when}.\n\nView your schedule: ${link}`;
-  const html = `<p><strong>${cancellerName}</strong> cancelled your 1:1 on <strong>${when}</strong>.</p><p><a href="${link}">View your schedule</a></p>`;
+  const html = `<p><strong>${esc(cancellerName)}</strong> cancelled your 1:1 on <strong>${when}</strong>.</p><p><a href="${link}">View your schedule</a></p>`;
   send(toEmail, subject, text, html).catch(() => {});
 }

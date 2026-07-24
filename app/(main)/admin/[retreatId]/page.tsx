@@ -3,7 +3,7 @@ import Link from "next/link";
 import { headers } from "next/headers";
 import { getSession } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
-import { isRetreatAdmin, isSuperAdmin, isValidTimezone, nowInRetreatTz, generateSlots, groupSlotsByDay } from "@/lib/config";
+import { isRetreatAdmin, isSuperAdmin, isValidTimezone, isValidSlotGrid, nowInRetreatTz, generateSlots, groupSlotsByDay } from "@/lib/config";
 import SlotChipPicker from "./SlotChipPicker";
 import CopyJoinLink from "./CopyJoinLink";
 import SettingsSaveButton from "./SettingsSaveButton";
@@ -33,16 +33,20 @@ async function updateSettings(formData: FormData) {
   await requireAdmin(retreatId);
   const timezone = String(formData.get("timezone") || "").trim();
   if (!isValidTimezone(timezone)) redirect(`/admin/${retreatId}`);
+  const grid = {
+    slotsStart: String(formData.get("slotsStart") || "").trim(),
+    slotsEnd: String(formData.get("slotsEnd") || "").trim(),
+    dayStart: String(formData.get("dayStart") || "08:00").trim(),
+    dayEnd: String(formData.get("dayEnd") || "22:00").trim(),
+    granularityMinutes: Number(formData.get("granularityMinutes")),
+  };
+  if (!isValidSlotGrid(grid)) redirect(`/admin/${retreatId}`);
   await prisma.retreat.update({
     where: { id: retreatId },
     data: {
       name: String(formData.get("name") || "").trim(),
       timezone,
-      slotsStart: String(formData.get("slotsStart") || "").trim(),
-      slotsEnd: String(formData.get("slotsEnd") || "").trim(),
-      dayStart: String(formData.get("dayStart") || "08:00").trim(),
-      dayEnd: String(formData.get("dayEnd") || "22:00").trim(),
-      granularityMinutes: Number(formData.get("granularityMinutes")) || 30,
+      ...grid,
       highlightedSlots: parseSlotList(formData.get("highlightedSlots")),
       blockedSlots: parseSlotList(formData.get("blockedSlots")),
       active: formData.get("active") === "on",
@@ -83,7 +87,8 @@ async function removeRetreatAdmin(formData: FormData) {
   const retreatId = String(formData.get("retreatId"));
   await requireAdmin(retreatId);
   const id = String(formData.get("id"));
-  await prisma.retreatAdmin.delete({ where: { id } });
+  // Scope by retreatId so an admin of one retreat can't delete rows of another
+  await prisma.retreatAdmin.deleteMany({ where: { id, retreatId } });
   redirect(`/admin/${retreatId}`);
 }
 
@@ -106,7 +111,8 @@ async function cancelMeeting(formData: FormData) {
   const retreatId = String(formData.get("retreatId"));
   await requireAdmin(retreatId);
   const id = String(formData.get("id"));
-  await prisma.meetingRequest.update({ where: { id }, data: { status: "cancelled" } });
+  // Scope by retreatId so an admin of one retreat can't cancel meetings of another
+  await prisma.meetingRequest.updateMany({ where: { id, retreatId }, data: { status: "cancelled" } });
   redirect(`/admin/${retreatId}`);
 }
 
