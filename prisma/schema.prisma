@@ -14,6 +14,16 @@ model User {
   superAdmin Boolean  @default(false)
   createdAt  DateTime @default(now())
 
+  // profile fields
+  tagline     String?
+  careerStage String?
+  aboutMe     String?
+  goals       String?
+  canHelpWith String?
+  linkedinUrl String?
+  websiteUrl  String?
+  photoUrl    String?
+
   attendances      RetreatAttendance[]
   availability     Availability[]
   requestsSent     MeetingRequest[]    @relation("from")
