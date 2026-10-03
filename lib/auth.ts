@@ -1,11 +1,11 @@
 import crypto from "crypto";
+import { Resend } from "resend";
 import sgMail from "@sendgrid/mail";
 import { prisma } from "./prisma";
 import { appUrl } from "./url";
 
-if (process.env.SENDGRID_API_KEY) {
-  sgMail.setApiKey(process.env.SENDGRID_API_KEY);
-}
+const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
+if (process.env.SENDGRID_API_KEY) sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
 const TOKEN_TTL_MS = 1000 * 60 * 30; // 30 min
 
@@ -34,31 +34,33 @@ export async function createMagicLink(
 }
 
 export async function sendMagicLinkEmail(email: string, link: string) {
-  const from = process.env.SENDGRID_FROM_EMAIL;
-  console.log("[auth] env check:", {
-    hasSendgridKey: !!process.env.SENDGRID_API_KEY,
-    keyPrefix: process.env.SENDGRID_API_KEY?.slice(0, 5),
-    from,
-    appUrl: process.env.APP_URL,
-    nodeEnv: process.env.NODE_ENV,
-  });
-  if (!process.env.SENDGRID_API_KEY || !from) {
-    console.log("[dev] magic link for", email, ":", link);
+  const subject = "Your Pairwise login link";
+  const text = `Click to log in: ${link}\n\nThis link expires in 30 minutes.`;
+  const html = `<p><a href="${link}">Click here to log in to Pairwise</a></p><p>This link expires in 30 minutes.</p>`;
+
+  if (resend && process.env.RESEND_FROM_EMAIL) {
+    try {
+      await resend.emails.send({ to: email, from: process.env.RESEND_FROM_EMAIL, subject, text, html });
+      console.log("[resend] email sent to", email);
+    } catch (err: unknown) {
+      console.error("[resend] failed to send to", email, err);
+      throw err;
+    }
     return;
   }
-  try {
-    await sgMail.send({
-      to: email,
-      from,
-      subject: "Your Pairwise login link",
-      text: `Click to log in: ${link}\n\nThis link expires in 30 minutes.`,
-      html: `<p><a href="${link}">Click here to log in to Pairwise</a></p><p>This link expires in 30 minutes.</p>`,
-    });
-    console.log("[sendgrid] email sent to", email);
-  } catch (err: unknown) {
-    console.error("[sendgrid] failed to send to", email, err);
-    throw err;
+
+  if (process.env.SENDGRID_API_KEY && process.env.SENDGRID_FROM_EMAIL) {
+    try {
+      await sgMail.send({ to: email, from: process.env.SENDGRID_FROM_EMAIL, subject, text, html });
+      console.log("[sendgrid] email sent to", email);
+    } catch (err: unknown) {
+      console.error("[sendgrid] failed to send to", email, err);
+      throw err;
+    }
+    return;
   }
+
+  console.log("[dev] magic link for", email, ":", link);
 }
 
 export async function consumeMagicLink(token: string) {

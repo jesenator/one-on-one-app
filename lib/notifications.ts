@@ -1,24 +1,32 @@
+import { Resend } from "resend";
 import sgMail from "@sendgrid/mail";
 import { formatSlotDay, formatSlotTime } from "./format";
 import { appUrl } from "./url";
 
-if (process.env.SENDGRID_API_KEY) {
-  sgMail.setApiKey(process.env.SENDGRID_API_KEY);
-}
-
-const FROM = process.env.SENDGRID_FROM_EMAIL;
+const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
+if (process.env.SENDGRID_API_KEY) sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
 async function send(to: string, subject: string, text: string, html: string) {
-  if (!process.env.SENDGRID_API_KEY || !FROM) {
-    console.log("[notif] no sendgrid, skipping email to", to, ":", subject);
+  // Prefer Resend if configured, fall back to SendGrid
+  if (resend && process.env.RESEND_FROM_EMAIL) {
+    try {
+      await resend.emails.send({ to, from: process.env.RESEND_FROM_EMAIL, subject, text, html });
+      console.log("[notif] sent via resend to", to);
+    } catch (err) {
+      console.error("[notif] resend failed for", to, err);
+    }
     return;
   }
-  try {
-    await sgMail.send({ to, from: FROM, subject, text, html });
-    console.log("[notif] sent to", to, ":", subject);
-  } catch (err) {
-    console.error("[notif] failed to send to", to, err);
+  if (process.env.SENDGRID_API_KEY && process.env.SENDGRID_FROM_EMAIL) {
+    try {
+      await sgMail.send({ to, from: process.env.SENDGRID_FROM_EMAIL, subject, text, html });
+      console.log("[notif] sent via sendgrid to", to);
+    } catch (err) {
+      console.error("[notif] sendgrid failed for", to, err);
+    }
+    return;
   }
+  console.log("[notif] no email provider configured, skipping email to", to, ":", subject);
 }
 
 function fmtSlot(d: Date) {
