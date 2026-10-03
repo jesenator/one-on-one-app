@@ -71,7 +71,15 @@ export default async function AttendeeProfile({
         </svg>
         All attendees
       </Link>
-      <h1 className="text-2xl font-bold text-stone-900">{user.name}</h1>
+      <div className="flex items-center gap-3 mb-1">
+        <h1 className="text-2xl font-bold text-stone-900">{user.name}</h1>
+        <Link
+          href={`/users/${id}`}
+          className="text-xs text-accent-600 font-medium border border-accent-200 rounded-md px-2 py-1 hover:bg-accent-50"
+        >
+          View profile
+        </Link>
+      </div>
       <p className="text-sm text-stone-400 mt-0.5 mb-6">
         Tap a green slot to request a 1:1
       </p>
