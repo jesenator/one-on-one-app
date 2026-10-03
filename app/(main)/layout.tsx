@@ -12,9 +12,10 @@ export default async function AppLayout({
 }) {
   const session = await getSession();
   if (!session.userId) redirect("/login");
-  if (!session.retreatId) redirect("/no-retreat");
-  const retreat = await getRetreat(session.retreatId);
-  const admin = await isSuperAdmin(session.userId) || await isRetreatAdmin(session.userId, session.retreatId);
+  const superAdmin = await isSuperAdmin(session.userId);
+  if (!session.retreatId && !superAdmin) redirect("/no-retreat");
+  const retreat = session.retreatId ? await getRetreat(session.retreatId) : null;
+  const admin = superAdmin || (session.retreatId ? await isRetreatAdmin(session.userId, session.retreatId) : false);
   const retreats = await getUserRetreats(session.userId, session.retreatId);
 
   return (
